@@ -11,7 +11,6 @@ import { queryClientAtom } from './queryClientAtom'
 
 type Action = {
   type: 'refetch'
-  unstable_pending?: boolean
 }
 
 export function atomsWithTanstackQuery<
@@ -65,7 +64,7 @@ export function atomsWithTanstackQuery<
     (get, _set, action: Action) => {
       if (action.type === 'refetch') {
         const observer = get(observerAtom)
-        observer.refetch({ cancelRefetch: true })
+        return observer.refetch({ cancelRefetch: true }).then(() => {})
       }
     }
   )
@@ -89,29 +88,18 @@ export function atomsWithTanstackQuery<
     return observable
   })
 
-  const pendingAtom = atom<Promise<never> | null>(null)
-
   const dataAtom = atom(
     (get) => {
       const baseData = get(baseDataAtom)
-      const pending = get(pendingAtom)
-      if (pending) {
-        throw pending
-      }
       if (baseData.error) {
         throw baseData.error
       }
       return baseData.data as TData
     },
-    (get, set, action: Action) => {
+    (get, _set, action: Action) => {
       if (action.type === 'refetch') {
         const observer = get(observerAtom)
-        if (action.unstable_pending) {
-          set(pendingAtom, new Promise<never>(() => {}))
-        }
-        observer.refetch({ cancelRefetch: true }).finally(() => {
-          set(pendingAtom, null)
-        })
+        return observer.refetch({ cancelRefetch: true }).then(() => {})
       }
     }
   )
