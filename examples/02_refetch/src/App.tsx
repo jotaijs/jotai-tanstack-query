@@ -45,8 +45,10 @@ const Controls = () => {
 
 const Fallback = ({ error, resetErrorBoundary }: FallbackProps) => {
   const setId = useSetAtom(idAtom)
+  const dispatch = useSetAtom(userAtom)
   const retry = () => {
     setId(1)
+    dispatch({ type: 'refetch', force: true })
     resetErrorBoundary()
   }
   return (

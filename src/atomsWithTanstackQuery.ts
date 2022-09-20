@@ -11,6 +11,7 @@ import { queryClientAtom } from './queryClientAtom'
 
 type Action = {
   type: 'refetch'
+  force?: boolean
 }
 
 export function atomsWithTanstackQuery<
@@ -23,16 +24,29 @@ export function atomsWithTanstackQuery<
   getOptions: (
     get: Getter
   ) => QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-  getQueryClient?: (get: Getter) => QueryClient
+  getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   type Result = QueryObserverResult<TData, TError>
 
+  const observerCacheAtom = atom(
+    () =>
+      new WeakMap<
+        QueryClient,
+        QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+      >()
+  )
+
   const observerAtom = atom((get) => {
-    const queryClient = getQueryClient
-      ? getQueryClient(get)
-      : get(queryClientAtom)
+    const queryClient = getQueryClient(get)
     const options = getOptions(get)
-    const observer = new QueryObserver(queryClient, options)
+    const observerCache = get(observerCacheAtom)
+    let observer = observerCache.get(queryClient)
+    if (observer) {
+      observer.setOptions(options)
+    } else {
+      observer = new QueryObserver(queryClient, options)
+      observerCache.set(queryClient, observer)
+    }
     return observer
   })
 
@@ -63,6 +77,11 @@ export function atomsWithTanstackQuery<
     (get) => get(baseStatusAtom),
     (get, _set, action: Action) => {
       if (action.type === 'refetch') {
+        if (action.force) {
+          const queryClient = getQueryClient(get)
+          const observerCache = get(observerCacheAtom)
+          observerCache.delete(queryClient)
+        }
         const observer = get(observerAtom)
         return observer.refetch({ cancelRefetch: true }).then(() => {})
       }
@@ -96,12 +115,7 @@ export function atomsWithTanstackQuery<
       }
       return baseData.data as TData
     },
-    (get, _set, action: Action) => {
-      if (action.type === 'refetch') {
-        const observer = get(observerAtom)
-        return observer.refetch({ cancelRefetch: true }).then(() => {})
-      }
-    }
+    (_get, set, action: Action) => set(statusAtom, action)
   )
 
   return [dataAtom, statusAtom] as const
