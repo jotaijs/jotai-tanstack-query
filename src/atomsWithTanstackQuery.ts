@@ -43,36 +43,29 @@ export function atomsWithTanstackQuery<
 
   const baseStatusAtom = atom(
     (get) => get(resultAtom),
-    (get, set, registerCleanup: (cleanup: () => void) => void) => {
+    (get, set, returnUnsubscribe: (unsubscribe: () => void) => void) => {
       const observer = get(observerAtom)
       const unsubscribe = observer.subscribe((result) => {
         set(resultAtom, result)
       })
-      registerCleanup(unsubscribe)
+      returnUnsubscribe(unsubscribe)
     }
   )
   baseStatusAtom.onMount = (initialize) => {
-    let unsub: (() => void) | undefined | false
-    initialize((cleanup) => {
-      if (unsub === false) {
-        cleanup()
-      } else {
-        unsub = cleanup
-      }
+    let unsub: (() => void) | undefined
+    initialize((unsubscribe) => {
+      unsub = unsubscribe
     })
-    return () => {
-      if (unsub) {
-        unsub()
-      }
-      unsub = false
-    }
+    return unsub
   }
 
   const statusAtom = atom(
     (get) => get(baseStatusAtom),
-    (get, set, action: Action) => {
-      // TODO
-      console.log('TODO', get, set, action)
+    (get, _set, action: Action) => {
+      if (action.type === 'refetch') {
+        const observer = get(observerAtom)
+        observer.refetch({ cancelRefetch: true })
+      }
     }
   )
 
@@ -103,9 +96,11 @@ export function atomsWithTanstackQuery<
       }
       return baseData.data as TData
     },
-    (get, set, action: Action) => {
-      // TODO
-      console.log('TODO', get, set, action)
+    (get, _set, action: Action) => {
+      if (action.type === 'refetch') {
+        const observer = get(observerAtom)
+        observer.refetch({ cancelRefetch: true })
+      }
     }
   )
 
