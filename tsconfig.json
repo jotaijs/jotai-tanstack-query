@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es5",
+    "esModuleInterop": true,
+    "downlevelIteration": true,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "jsx": "react",
+    "allowJs": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "jotai-tanstack-query": ["./src"]
+    },
+    "outDir": "./dist"
+  }
+}
