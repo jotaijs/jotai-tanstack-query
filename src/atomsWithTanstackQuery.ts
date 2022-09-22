@@ -3,6 +3,7 @@ import type {
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
+  ResetOptions,
 } from '@tanstack/query-core'
 import { atom } from 'jotai'
 import type { Getter } from 'jotai'
@@ -12,6 +13,7 @@ import { queryClientAtom } from './queryClientAtom'
 type Action = {
   type: 'refetch'
   force?: boolean
+  options?: ResetOptions
 }
 
 export function atomsWithTanstackQuery<
@@ -36,7 +38,10 @@ export function atomsWithTanstackQuery<
       >()
   )
 
+  const refreshAtom = atom(0)
+
   const observerAtom = atom((get) => {
+    get(refreshAtom)
     const queryClient = getQueryClient(get)
     const options = getOptions(get)
     const observerCache = get(observerCacheAtom)
@@ -75,15 +80,18 @@ export function atomsWithTanstackQuery<
 
   const statusAtom = atom(
     (get) => get(baseStatusAtom),
-    (get, _set, action: Action) => {
+    (get, set, action: Action) => {
       if (action.type === 'refetch') {
+        const observer = get(observerAtom)
         if (action.force) {
+          observer.remove()
           const queryClient = getQueryClient(get)
           const observerCache = get(observerCacheAtom)
           observerCache.delete(queryClient)
+          set(refreshAtom, (c) => c + 1)
+          return
         }
-        const observer = get(observerAtom)
-        return observer.refetch({ cancelRefetch: true }).then(() => {})
+        return observer.refetch(action.options).then(() => {})
       }
     }
   )
