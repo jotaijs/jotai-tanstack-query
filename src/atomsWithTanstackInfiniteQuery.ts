@@ -4,7 +4,6 @@ import type {
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
   QueryKey,
-  ResetOptions,
 } from '@tanstack/query-core'
 import type { Getter, WritableAtom } from 'jotai'
 import { buildCreateAtoms } from './atomsWithTanstackQuery'
@@ -14,7 +13,7 @@ type Action =
   | {
       type: 'refetch'
       force?: boolean
-      options?: ResetOptions
+      options?: Parameters<InfiniteQueryObserver['refetch']>[0]
     }
   | { type: 'fetchNextPage' }
   | { type: 'fetchPreviousPage' }

@@ -7,7 +7,6 @@ import type {
   QueryKey,
   QueryObserverOptions,
   QueryObserverResult,
-  ResetOptions,
 } from '@tanstack/query-core'
 import { atom } from 'jotai'
 import type { Getter, WritableAtom } from 'jotai'
@@ -17,7 +16,7 @@ import { queryClientAtom } from './queryClientAtom'
 type Action = {
   type: 'refetch'
   force?: boolean
-  options?: ResetOptions
+  options?: Parameters<QueryObserver['refetch']>[0]
 }
 
 export const buildCreateAtoms =
