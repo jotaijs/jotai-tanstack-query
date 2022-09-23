@@ -96,7 +96,7 @@ export const buildCreateAtoms =
           const callback = (result: Result) => {
             if (
               (result.isSuccess && result.data !== undefined) ||
-              (result.isError && isCancelledError(result.error))
+              (result.isError && !isCancelledError(result.error))
             ) {
               ;(typeof arg === 'function' ? arg : arg.next)(result)
             }
