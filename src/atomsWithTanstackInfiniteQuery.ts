@@ -6,7 +6,7 @@ import type {
   QueryKey,
 } from '@tanstack/query-core'
 import type { Getter, WritableAtom } from 'jotai'
-import { buildCreateAtoms } from './atomsWithTanstackQuery'
+import { buildCreateAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
 type Action =
@@ -20,12 +20,20 @@ type Action =
 
 const createAtoms = buildCreateAtoms<
   InfiniteQueryObserverOptions<any, any, any, any, any>,
-  InfiniteQueryObserver<any, any, any, any, any>,
   InfiniteQueryObserverResult<any, any>,
+  InfiniteQueryObserver<any, any, any, any, any>,
   Action
 >(
   (client, options) => new InfiniteQueryObserver(client, options),
-  (observer, action) => {
+  (action, observer, refresh) => {
+    if (action.type === 'refetch') {
+      if (action.force) {
+        observer.remove()
+        refresh()
+        return
+      }
+      return observer.refetch(action.options).then(() => {})
+    }
     if (action.type === 'fetchNextPage') {
       return observer.fetchNextPage().then(() => {})
     }
