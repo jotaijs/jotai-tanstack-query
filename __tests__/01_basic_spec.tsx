@@ -1,4 +1,5 @@
 import {
+  atomWithTanstackMutation,
   atomsWithTanstackInfiniteQuery,
   atomsWithTanstackQuery,
   queryClientAtom,
@@ -9,5 +10,6 @@ describe('basic spec', () => {
     expect(queryClientAtom).toBeDefined()
     expect(atomsWithTanstackQuery).toBeDefined()
     expect(atomsWithTanstackInfiniteQuery).toBeDefined()
+    expect(atomWithTanstackMutation).toBeDefined()
   })
 })

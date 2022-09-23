@@ -67,6 +67,7 @@ export const buildCreateAtoms =
         const unsubscribe = observer.subscribe((result) => {
           set(resultAtom, result as Result)
         })
+        set(resultAtom, observer.getCurrentResult() as Result)
         returnUnsubscribe(unsubscribe)
       }
     )
