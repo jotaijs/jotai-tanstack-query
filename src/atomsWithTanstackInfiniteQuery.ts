@@ -10,17 +10,31 @@ import type { Getter, WritableAtom } from 'jotai'
 import { buildCreateAtoms } from './atomsWithTanstackQuery'
 import { queryClientAtom } from './queryClientAtom'
 
+type Action =
+  | {
+      type: 'refetch'
+      force?: boolean
+      options?: ResetOptions
+    }
+  | { type: 'fetchNextPage' }
+  | { type: 'fetchPreviousPage' }
+
 const createAtoms = buildCreateAtoms<
   InfiniteQueryObserverOptions<any, any, any, any, any>,
   InfiniteQueryObserver<any, any, any, any, any>,
-  InfiniteQueryObserverResult<any, any>
->((client, options) => new InfiniteQueryObserver(client, options))
-
-type Action = {
-  type: 'refetch'
-  force?: boolean
-  options?: ResetOptions
-}
+  InfiniteQueryObserverResult<any, any>,
+  Action
+>(
+  (client, options) => new InfiniteQueryObserver(client, options),
+  (observer, action) => {
+    if (action.type === 'fetchNextPage') {
+      return observer.fetchNextPage().then(() => {})
+    }
+    if (action.type === 'fetchPreviousPage') {
+      return observer.fetchPreviousPage().then(() => {})
+    }
+  }
+)
 
 export function atomsWithTanstackInfiniteQuery<
   TQueryFnData = unknown,

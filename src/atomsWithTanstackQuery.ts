@@ -14,13 +14,24 @@ import type { Getter, WritableAtom } from 'jotai'
 import { atomWithDefault, atomWithObservable } from 'jotai/utils'
 import { queryClientAtom } from './queryClientAtom'
 
+type Action = {
+  type: 'refetch'
+  force?: boolean
+  options?: ResetOptions
+}
+
 export const buildCreateAtoms =
   <
     Options extends QueryObserverOptions<any, any, any, any, any>,
     Observer extends QueryObserver<any, any, any, any, any>,
-    Result extends QueryObserverResult<any, any>
+    Result extends QueryObserverResult<any, any>,
+    ExtendedAction extends { type: string }
   >(
-    createQueryObserver: (client: QueryClient, options: Options) => Observer
+    createQueryObserver: (client: QueryClient, options: Options) => Observer,
+    handleAction?: (
+      observer: Observer,
+      action: ExtendedAction
+    ) => Promise<void> | void
   ) =>
   (
     getOptions: (get: Getter) => Options,
@@ -70,10 +81,10 @@ export const buildCreateAtoms =
 
     const statusAtom = atom(
       (get) => get(baseStatusAtom),
-      (get, set, action: Action) => {
+      (get, set, action: Action | ExtendedAction) => {
+        const observer = get(observerAtom)
         if (action.type === 'refetch') {
-          const observer = get(observerAtom)
-          if (action.force) {
+          if ((action as Action).force) {
             observer.remove()
             const queryClient = getQueryClient(get)
             const observerCache = get(observerCacheAtom)
@@ -81,7 +92,10 @@ export const buildCreateAtoms =
             set(refreshAtom, (c) => c + 1)
             return
           }
-          return observer.refetch(action.options).then(() => {})
+          return observer.refetch((action as Action).options).then(() => {})
+        }
+        if (handleAction) {
+          return handleAction(observer, action as ExtendedAction)
         }
       }
     )
@@ -121,7 +135,7 @@ export const buildCreateAtoms =
         }
         return baseData.data
       },
-      (_get, set, action: Action) => set(statusAtom, action)
+      (_get, set, action: Action | ExtendedAction) => set(statusAtom, action)
     )
 
     return [dataAtom, statusAtom] as const
@@ -130,12 +144,6 @@ export const buildCreateAtoms =
 const createAtoms = buildCreateAtoms(
   (client, options) => new QueryObserver(client, options)
 )
-
-type Action = {
-  type: 'refetch'
-  force?: boolean
-  options?: ResetOptions
-}
 
 export function atomsWithTanstackQuery<
   TQueryFnData = unknown,
