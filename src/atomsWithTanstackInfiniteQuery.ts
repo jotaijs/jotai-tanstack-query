@@ -1,5 +1,6 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
 import type {
+  InfiniteData,
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
   QueryKey,
@@ -39,7 +40,7 @@ export function atomsWithTanstackInfiniteQuery<
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
-  dataAtom: WritableAtom<TData, Action>,
+  dataAtom: WritableAtom<InfiniteData<TData>, Action>,
   statusAtom: WritableAtom<InfiniteQueryObserverResult<TData, TError>, Action>
 ] {
   return createAtoms(getOptions, getQueryClient)
