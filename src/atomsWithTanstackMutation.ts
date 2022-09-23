@@ -5,25 +5,13 @@ import type {
   MutationObserverResult,
 } from '@tanstack/query-core'
 import type { Getter, WritableAtom } from 'jotai'
-import { buildCreateAtoms } from './common'
+import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
 type Action<TData, TError, TVariables, TContext> = [
   variables: TVariables,
   options?: MutateOptions<TData, TError, TVariables, TContext>
 ]
-
-const createAtoms = buildCreateAtoms<
-  MutationObserverOptions<any, any, any, any>,
-  MutationObserverResult<any, any, any, any>,
-  MutationObserver<any, any, any, any>,
-  Action<any, any, any, any>
->(
-  (client, options) => new MutationObserver(client, options),
-  async (action, observer) => {
-    await observer.mutate(...action)
-  }
-)
 
 export function atomsWithTanstackMutation<
   TData = unknown,
@@ -42,5 +30,12 @@ export function atomsWithTanstackMutation<
     Action<TData, TError, TVariables, TContext>
   >
 ] {
-  return createAtoms(getOptions, getQueryClient)
+  return createAtoms(
+    getOptions,
+    getQueryClient,
+    (client, options) => new MutationObserver(client, options),
+    async (action, observer) => {
+      await observer.mutate(...action)
+    }
+  )
 }

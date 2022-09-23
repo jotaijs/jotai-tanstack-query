@@ -5,7 +5,7 @@ import type {
   QueryObserverResult,
 } from '@tanstack/query-core'
 import type { Getter, WritableAtom } from 'jotai'
-import { buildCreateAtoms } from './common'
+import { createAtoms } from './common'
 import { queryClientAtom } from './queryClientAtom'
 
 type Action = {
@@ -13,25 +13,6 @@ type Action = {
   force?: boolean
   options?: Parameters<QueryObserver['refetch']>[0]
 }
-
-const createAtoms = buildCreateAtoms<
-  QueryObserverOptions<any, any, any, any, any>,
-  QueryObserverResult<any, any>,
-  QueryObserver<any, any, any, any, any>,
-  Action
->(
-  (client, options) => new QueryObserver(client, options),
-  (action, observer, refresh) => {
-    if (action.type === 'refetch') {
-      if (action.force) {
-        observer.remove()
-        refresh()
-        return
-      }
-      return observer.refetch(action.options).then(() => {})
-    }
-  }
-)
 
 export function atomsWithTanstackQuery<
   TQueryFnData = unknown,
@@ -48,5 +29,19 @@ export function atomsWithTanstackQuery<
   dataAtom: WritableAtom<TData, Action>,
   statusAtom: WritableAtom<QueryObserverResult<TData, TError>, Action>
 ] {
-  return createAtoms(getOptions, getQueryClient)
+  return createAtoms(
+    getOptions,
+    getQueryClient,
+    (client, options) => new QueryObserver(client, options),
+    (action, observer, refresh) => {
+      if (action.type === 'refetch') {
+        if (action.force) {
+          observer.remove()
+          refresh()
+          return
+        }
+        return observer.refetch(action.options).then(() => {})
+      }
+    }
+  )
 }
