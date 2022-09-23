@@ -1,4 +1,8 @@
-import { QueryClient, QueryObserver } from '@tanstack/query-core'
+import {
+  QueryClient,
+  QueryObserver,
+  isCancelledError,
+} from '@tanstack/query-core'
 import type {
   QueryKey,
   QueryObserverOptions,
@@ -89,9 +93,15 @@ export const buildCreateAtoms =
           arg: { next: (result: Result) => void } | ((result: Result) => void)
         ) => {
           const callback = (result: Result) => {
-            if (result.error || result.data !== undefined) {
-              ;(typeof arg === 'function' ? arg : arg.next)(result)
+            if (
+              result.isFetching ||
+              (!result.isError && result.data === undefined) ||
+              (result.isError && isCancelledError(result.error))
+            ) {
+              // do not update
+              return
             }
+            ;(typeof arg === 'function' ? arg : arg.next)(result)
           }
           const unsubscribe = observer.subscribe(
             callback as (result: unknown) => void
