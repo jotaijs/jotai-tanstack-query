@@ -103,7 +103,9 @@ export const createAtoms = <
         return { unsubscribe }
       },
     }
-    const resultAtom = atomWithObservable(() => observable)
+    const resultAtom = atomWithObservable(() => observable, {
+      initialValue: observer.getCurrentResult().data,
+    })
     return resultAtom
   })
 
