@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@tanstack/query-core": "latest",
     "@types/react": "latest",
     "@types/react-dom": "latest",
     "jotai": "latest",
