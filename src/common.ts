@@ -103,9 +103,13 @@ export const createAtoms = <
         return { unsubscribe }
       },
     }
-    const resultAtom = atomWithObservable(() => observable, {
-      initialValue: observer.getCurrentResult().data,
-    })
+    const currentResult = observer.getCurrentResult()
+    const options =
+      (currentResult.isSuccess && currentResult.data !== undefined) ||
+      (currentResult.isError && !isCancelledError(currentResult.error))
+        ? { initialValue: currentResult }
+        : {}
+    const resultAtom = atomWithObservable(() => observable, options)
     return resultAtom
   })
 
