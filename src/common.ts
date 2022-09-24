@@ -1,7 +1,7 @@
 import { QueryClient, isCancelledError } from '@tanstack/query-core'
 import { atom } from 'jotai'
 import type { Getter } from 'jotai'
-import { atomWithDefault, atomWithObservable } from 'jotai/utils'
+import { atomWithObservable } from 'jotai/utils'
 
 export const createAtoms = <
   Options,
@@ -46,32 +46,31 @@ export const createAtoms = <
     return observer
   })
 
-  const resultAtom = atomWithDefault((get) => {
+  const baseStatusAtom = atom((get) => {
     const observer = get(observerAtom)
-    return observer.getCurrentResult()
+    const observable = {
+      subscribe: (
+        arg: { next: (result: Result) => void } | ((result: Result) => void)
+      ) => {
+        const callback = (result: Result) => {
+          ;(typeof arg === 'function' ? arg : arg.next)(result)
+        }
+        const unsubscribe = observer.subscribe(callback)
+        callback(observer.getCurrentResult())
+        return { unsubscribe }
+      },
+    }
+    const resultAtom = atomWithObservable(() => observable, {
+      initialValue: observer.getCurrentResult(),
+    })
+    return resultAtom
   })
 
-  const baseStatusAtom = atom(
-    (get) => get(resultAtom),
-    (get, set, returnUnsubscribe: (unsubscribe: () => void) => void) => {
-      const observer = get(observerAtom)
-      const unsubscribe = observer.subscribe((result) => {
-        set(resultAtom, result)
-      })
-      set(resultAtom, observer.getCurrentResult())
-      returnUnsubscribe(unsubscribe)
-    }
-  )
-  baseStatusAtom.onMount = (initialize) => {
-    let unsub: (() => void) | undefined
-    initialize((unsubscribe) => {
-      unsub = unsubscribe
-    })
-    return unsub
-  }
-
   const statusAtom = atom(
-    (get) => get(baseStatusAtom),
+    (get) => {
+      const resultAtom = get(baseStatusAtom)
+      return get(resultAtom)
+    },
     (get, set, action: Action) => {
       const observer = get(observerAtom)
       const refresh = () => {
