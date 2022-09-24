@@ -83,23 +83,9 @@ export const createAtoms = <
     }
   )
 
-  const pendingCallbacksCache = new WeakMap<
-    Observer,
-    Set<(result: Result) => void>
-  >()
-  const getPendingCallbacks = (observer: Observer) => {
-    let pendingCallbacks = pendingCallbacksCache.get(observer)
-    if (!pendingCallbacks) {
-      pendingCallbacks = new Set()
-      pendingCallbacksCache.set(observer, pendingCallbacks)
-    }
-    return pendingCallbacks
-  }
-
   const baseDataAtom = atom((get) => {
     getOptions(get) // re-create observable when options change
     const observer = get(observerAtom)
-    const pendingCallbacks = getPendingCallbacks(observer)
     const observable = {
       subscribe: (
         arg: { next: (result: Result) => void } | ((result: Result) => void)
@@ -110,15 +96,8 @@ export const createAtoms = <
             (result.isError && !isCancelledError(result.error))
           ) {
             ;(typeof arg === 'function' ? arg : arg.next)(result)
-            pendingCallbacks.forEach((cb) => {
-              if (cb !== callback) {
-                cb(result)
-              }
-            })
-            pendingCallbacks.clear()
           }
         }
-        pendingCallbacks.add(callback)
         const unsubscribe = observer.subscribe(callback)
         callback(observer.getCurrentResult())
         return { unsubscribe }
