@@ -83,7 +83,8 @@ export const createAtoms = <
     }
   )
 
-  const baseDataAtom = atomWithObservable((get) => {
+  const baseDataAtom = atom((get) => {
+    getOptions(get) // re-create observable when options change
     const observer = get(observerAtom)
     const observable = {
       subscribe: (
@@ -102,16 +103,18 @@ export const createAtoms = <
         return { unsubscribe }
       },
     }
-    return observable
+    const resultAtom = atomWithObservable(() => observable)
+    return resultAtom
   })
 
   const dataAtom = atom(
     (get) => {
-      const baseData = get(baseDataAtom)
-      if (baseData.error) {
-        throw baseData.error
+      const resultAtom = get(baseDataAtom)
+      const result = get(resultAtom)
+      if (result.error) {
+        throw result.error
       }
-      return baseData.data
+      return result.data
     },
     (_get, set, action: Action) => set(statusAtom, action)
   )
