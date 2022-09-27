@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Added
+- for dataAtom, re-create observer when options change #5
 
 ## [0.1.0] - 2022-09-24
 ### Added
