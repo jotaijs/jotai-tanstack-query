@@ -15,6 +15,7 @@ export const createAtoms = <
     setOptions(options: Options): void
     getCurrentResult(): Result
     subscribe(callback: (result: Result) => void): () => void
+    destroy?(): void
   },
   Action
 >(
@@ -38,7 +39,14 @@ export const createAtoms = <
     const observerCache = get(observerCacheAtom)
     let observer = observerCache.get(queryClient)
     if (observer) {
-      observer.setOptions(options)
+      if (observer.destroy) {
+        observer.destroy()
+        observer.setOptions(options)
+      } else {
+        Promise.resolve().then(() => {
+          ;(observer as Observer).setOptions(options)
+        })
+      }
     } else {
       observer = createObserver(queryClient, options)
       observerCache.set(queryClient, observer)
