@@ -38,7 +38,8 @@ export const createAtoms = <
     const observerCache = get(observerCacheAtom)
     let observer = observerCache.get(queryClient)
     if (observer) {
-      // Needs to delay because this can be called in render
+      // Needs to delay because this is called in render
+      // and `setOptions` notifies listeners.
       // FIXME Is there a better way?
       Promise.resolve().then(() => {
         ;(observer as Observer).setOptions(options)
