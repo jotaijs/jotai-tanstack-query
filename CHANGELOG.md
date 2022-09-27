@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [0.1.0] - 2022-09-24
 ### Added
 - implement refetch #1
 - feat: observer cache #2
