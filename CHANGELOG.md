@@ -1,9 +1,11 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- fix setOptions not to delay #6
 
 ## [0.2.0] - 2022-09-27
-### Added
+### Changed
 - for dataAtom, re-create observer when options change #5
 
 ## [0.1.0] - 2022-09-24
