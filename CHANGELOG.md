@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [0.2.1] - 2022-10-04
 ### Changed
 - fix setOptions not to delay #6
 
