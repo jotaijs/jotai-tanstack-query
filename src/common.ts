@@ -31,6 +31,9 @@ export const createAtoms = <
 
   const refreshAtom = atom(0)
 
+  // Hoped `notifyOptions.listeners = false` works,
+  // but it doesn't work as expected.
+  // So, the workaround is this special property.
   const SKIP_LISTENERS = Symbol()
 
   const observerAtom = atom((get) => {
