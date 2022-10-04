@@ -31,6 +31,8 @@ export const createAtoms = <
 
   const refreshAtom = atom(0)
 
+  const SKIP_LISTENERS = Symbol()
+
   const observerAtom = atom((get) => {
     get(refreshAtom)
     const queryClient = getQueryClient(get)
@@ -38,7 +40,9 @@ export const createAtoms = <
     const observerCache = get(observerCacheAtom)
     let observer = observerCache.get(queryClient)
     if (observer) {
+      ;(observer as any)[SKIP_LISTENERS] = true
       observer.setOptions(options, { listeners: false })
+      delete (observer as any)[SKIP_LISTENERS]
     } else {
       observer = createObserver(queryClient, options)
       observerCache.set(queryClient, observer)
@@ -53,7 +57,9 @@ export const createAtoms = <
         arg: { next: (result: Result) => void } | ((result: Result) => void)
       ) => {
         const callback = (result: Result) => {
-          ;(typeof arg === 'function' ? arg : arg.next)(result)
+          if (!(observer as any)[SKIP_LISTENERS]) {
+            ;(typeof arg === 'function' ? arg : arg.next)(result)
+          }
         }
         const unsubscribe = observer.subscribe(callback)
         callback(observer.getCurrentResult())
@@ -92,8 +98,9 @@ export const createAtoms = <
       ) => {
         const callback = (result: Result) => {
           if (
-            (result.isSuccess && result.data !== undefined) ||
-            (result.isError && !isCancelledError(result.error))
+            !(observer as any)[SKIP_LISTENERS] &&
+            ((result.isSuccess && result.data !== undefined) ||
+              (result.isError && !isCancelledError(result.error)))
           ) {
             ;(typeof arg === 'function' ? arg : arg.next)(result)
           }
