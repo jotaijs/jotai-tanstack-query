@@ -2,4 +2,4 @@
 
 👻🌺
 
-A Jotai integration library for TanStack Query
+Jotai integration library for TanStack Query
