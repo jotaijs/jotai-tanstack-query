@@ -16,7 +16,8 @@ export const createAtoms = <
     getCurrentResult(): Result
     subscribe(callback: (result: Result) => void): () => void
   },
-  Action
+  Action,
+  ActionResult extends Promise<void> | void
 >(
   getOptions: (get: Getter) => Options,
   getQueryClient: (get: Getter) => QueryClient,
@@ -25,7 +26,7 @@ export const createAtoms = <
     action: Action,
     observer: Observer,
     refresh: () => void
-  ) => Promise<void> | void
+  ) => ActionResult
 ) => {
   const observerCacheAtom = atom(() => new WeakMap<QueryClient, Observer>())
 
