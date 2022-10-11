@@ -57,9 +57,7 @@ export const createAtoms = <
   const baseStatusAtom = atom((get) => {
     const observer = get(observerAtom)
     const observable = {
-      subscribe: (
-        arg: { next: (result: Result) => void } | ((result: Result) => void)
-      ) => {
+      subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
           if (!(observer as any)[SKIP_LISTENERS]) {
             ;(typeof arg === 'function' ? arg : arg.next)(result)
@@ -97,9 +95,7 @@ export const createAtoms = <
     getOptions(get) // re-create observable when options change
     const observer = get(observerAtom)
     const observable = {
-      subscribe: (
-        arg: { next: (result: Result) => void } | ((result: Result) => void)
-      ) => {
+      subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
           if (
             !(observer as any)[SKIP_LISTENERS] &&
