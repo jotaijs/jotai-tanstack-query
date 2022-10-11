@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - make mutation atom type correct #7
+- update jotai and fix types #8
 
 ## [0.2.1] - 2022-10-04
 ### Changed
