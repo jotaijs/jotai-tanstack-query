@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [0.3.0] - 2022-10-11
 ### Changed
 - make mutation atom type correct #7
 - update jotai and fix types #8
