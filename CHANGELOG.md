@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- make mutation atom type correct #7
 
 ## [0.2.1] - 2022-10-04
 ### Changed

@@ -24,10 +24,15 @@ export function atomsWithTanstackMutation<
   ) => MutationObserverOptions<TData, TError, TVariables, TContext>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
-  dataAtom: WritableAtom<TData, Action<TData, TError, TVariables, TContext>>,
+  dataAtom: WritableAtom<
+    TData,
+    Action<TData, TError, TVariables, TContext>,
+    Promise<void>
+  >,
   statusAtom: WritableAtom<
     MutationObserverResult<TData, TError, TVariables, TContext>,
-    Action<TData, TError, TVariables, TContext>
+    Action<TData, TError, TVariables, TContext>,
+    Promise<void>
   >
 ] {
   return createAtoms(
