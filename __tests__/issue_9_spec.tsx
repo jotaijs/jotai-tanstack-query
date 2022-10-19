@@ -7,10 +7,13 @@ describe('issue #9', () => {
   it('status should change', async () => {
     const idAtom = atom(undefined as number | undefined)
 
+    let resolve: (() => void) | undefined
     const [, statusAtom] = atomsWithTanstackQuery((get) => ({
       queryKey: ['users', get(idAtom)],
       queryFn: async ({ queryKey: [, id] }) => {
-        await new Promise((resolve) => setTimeout(resolve, 100))
+        await new Promise<void>((r) => {
+          resolve = r
+        })
         return { id }
       },
       // using as a dependent query
@@ -55,10 +58,12 @@ describe('issue #9', () => {
 
     fireEvent.click(getByText('Next'))
     await findByText('status: initial loading')
+    resolve?.()
     await findByText('status: success')
 
     fireEvent.click(getByText('Next'))
     await findByText('status: initial loading')
+    resolve?.()
     await findByText('status: success')
   })
 })
