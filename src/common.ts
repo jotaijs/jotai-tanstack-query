@@ -32,10 +32,10 @@ export const createAtoms = <
 
   const refreshAtom = atom(0)
 
-  // Hoped `notifyOptions.listeners = false` works,
-  // but it doesn't work as expected.
-  // So, the workaround is this special property.
-  const SKIP_LISTENERS = Symbol()
+  // This is for a special property to indicate
+  // that it is in the render function.
+  // It's a workaround because we can't use useEffect.
+  const IN_RENDER = Symbol()
 
   const observerAtom = atom((get) => {
     get(refreshAtom)
@@ -44,9 +44,9 @@ export const createAtoms = <
     const observerCache = get(observerCacheAtom)
     let observer = observerCache.get(queryClient)
     if (observer) {
-      ;(observer as any)[SKIP_LISTENERS] = true
+      ;(observer as any)[IN_RENDER] = true
       observer.setOptions(options, { listeners: false })
-      delete (observer as any)[SKIP_LISTENERS]
+      delete (observer as any)[IN_RENDER]
     } else {
       observer = createObserver(queryClient, options)
       observerCache.set(queryClient, observer)
@@ -59,8 +59,12 @@ export const createAtoms = <
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
-          if (!(observer as any)[SKIP_LISTENERS]) {
-            ;(typeof arg === 'function' ? arg : arg.next)(result)
+          const notifyResult = () =>
+            (typeof arg === 'function' ? arg : arg.next)(result)
+          if ((observer as any)[IN_RENDER]) {
+            Promise.resolve().then(notifyResult)
+          } else {
+            notifyResult()
           }
         }
         const unsubscribe = observer.subscribe(callback)
@@ -98,11 +102,16 @@ export const createAtoms = <
       subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
           if (
-            !(observer as any)[SKIP_LISTENERS] &&
-            ((result.isSuccess && result.data !== undefined) ||
-              (result.isError && !isCancelledError(result.error)))
+            (result.isSuccess && result.data !== undefined) ||
+            (result.isError && !isCancelledError(result.error))
           ) {
-            ;(typeof arg === 'function' ? arg : arg.next)(result)
+            const notifyResult = () =>
+              (typeof arg === 'function' ? arg : arg.next)(result)
+            if ((observer as any)[IN_RENDER]) {
+              Promise.resolve().then(notifyResult)
+            } else {
+              notifyResult()
+            }
           }
         }
         const unsubscribe = observer.subscribe(callback)
