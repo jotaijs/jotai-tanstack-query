@@ -3,6 +3,7 @@
 ## [Unreleased]
 ### Changed
 - fix: status should change #10
+- breaking: simplify api names #11
 
 ## [0.3.0] - 2022-10-11
 ### Changed
