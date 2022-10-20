@@ -18,7 +18,7 @@ type Action =
   | { type: 'fetchNextPage' }
   | { type: 'fetchPreviousPage' }
 
-export function atomsWithTanstackInfiniteQuery<
+export function atomsWithInfiniteQuery<
   TQueryFnData = unknown,
   TError = unknown,
   TData = TQueryFnData,

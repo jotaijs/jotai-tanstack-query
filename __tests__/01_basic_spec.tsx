@@ -1,15 +1,15 @@
 import {
-  atomsWithTanstackInfiniteQuery,
-  atomsWithTanstackMutation,
-  atomsWithTanstackQuery,
+  atomsWithInfiniteQuery,
+  atomsWithMutation,
+  atomsWithQuery,
   queryClientAtom,
 } from '../src/index'
 
 describe('basic spec', () => {
   it('should export functions', () => {
     expect(queryClientAtom).toBeDefined()
-    expect(atomsWithTanstackQuery).toBeDefined()
-    expect(atomsWithTanstackInfiniteQuery).toBeDefined()
-    expect(atomsWithTanstackMutation).toBeDefined()
+    expect(atomsWithQuery).toBeDefined()
+    expect(atomsWithInfiniteQuery).toBeDefined()
+    expect(atomsWithMutation).toBeDefined()
   })
 })

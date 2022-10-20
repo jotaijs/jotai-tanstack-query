@@ -1,12 +1,12 @@
 import React, { Suspense } from 'react'
 import { atom, useAtom, useSetAtom } from 'jotai'
-import { atomsWithTanstackQuery } from 'jotai-tanstack-query'
+import { atomsWithQuery } from 'jotai-tanstack-query'
 import { ErrorBoundary } from 'react-error-boundary'
 import type { FallbackProps } from 'react-error-boundary'
 
 const idAtom = atom(1)
 
-const [userAtom] = atomsWithTanstackQuery((get) => ({
+const [userAtom] = atomsWithQuery((get) => ({
   queryKey: ['users', get(idAtom)],
   queryFn: async ({ queryKey: [, id] }) => {
     const res = await fetch(`https://reqres.in/api/users/${id}`)

@@ -1,14 +1,14 @@
 import React from 'react'
 import { fireEvent, render } from '@testing-library/react'
 import { atom, useAtom } from 'jotai'
-import { atomsWithTanstackQuery } from '../src/index'
+import { atomsWithQuery } from '../src/index'
 
 describe('issue #9', () => {
   it('status should change', async () => {
     const idAtom = atom(undefined as number | undefined)
 
     let resolve: (() => void) | undefined
-    const [, statusAtom] = atomsWithTanstackQuery((get) => ({
+    const [, statusAtom] = atomsWithQuery((get) => ({
       queryKey: ['users', get(idAtom)],
       queryFn: async ({ queryKey: [, id] }) => {
         await new Promise<void>((r) => {
