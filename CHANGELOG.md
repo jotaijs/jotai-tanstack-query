@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+### Changed
+- fix: status should change #10
 
 ## [0.3.0] - 2022-10-11
 ### Changed
