@@ -14,7 +14,7 @@ type Action = {
   options?: Parameters<QueryObserver['refetch']>[0]
 }
 
-export function atomsWithTanstackQuery<
+export function atomsWithQuery<
   TQueryFnData = unknown,
   TError = unknown,
   TData = TQueryFnData,

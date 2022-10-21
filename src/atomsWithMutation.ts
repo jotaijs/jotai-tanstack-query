@@ -13,7 +13,7 @@ type Action<TData, TError, TVariables, TContext> = [
   options?: MutateOptions<TData, TError, TVariables, TContext>
 ]
 
-export function atomsWithTanstackMutation<
+export function atomsWithMutation<
   TData = unknown,
   TError = unknown,
   TVariables = void,

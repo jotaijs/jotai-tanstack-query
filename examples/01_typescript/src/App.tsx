@@ -1,10 +1,10 @@
 import React, { Suspense } from 'react'
 import { atom, useAtom } from 'jotai'
-import { atomsWithTanstackQuery } from 'jotai-tanstack-query'
+import { atomsWithQuery } from 'jotai-tanstack-query'
 
 const idAtom = atom(1)
 
-const [userAtom] = atomsWithTanstackQuery((get) => ({
+const [userAtom] = atomsWithQuery((get) => ({
   queryKey: ['users', get(idAtom)],
   queryFn: async ({ queryKey: [, id] }) => {
     const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
