@@ -1,6 +1,8 @@
 # Change Log
 
 ## [Unreleased]
+
+## [0.4.0] - 2022-10-21
 ### Changed
 - fix: status should change #10
 - breaking: simplify api names #11
