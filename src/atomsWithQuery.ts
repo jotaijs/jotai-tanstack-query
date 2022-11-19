@@ -27,7 +27,7 @@ export function atomsWithQuery<
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
   dataAtom: WritableAtom<
-    Promise<TData>,
+    TData | Promise<TData>,
     [Action],
     void | Promise<QueryObserverResult<TData, TError>>
   >,

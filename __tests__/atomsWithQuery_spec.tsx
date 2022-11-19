@@ -245,7 +245,7 @@ it('query no-loading with keepPreviousData', async () => {
   const dataAtom = atom(0)
   const mockFetch = jest.fn((response) => ({ response }))
   let resolve = () => {}
-  const [, countAtom] = atomsWithQuery((get) => ({
+  const [countAtom] = atomsWithQuery((get) => ({
     queryKey: ['keepPreviousData', get(dataAtom)],
     keepPreviousData: true,
     queryFn: async () => {
@@ -255,10 +255,14 @@ it('query no-loading with keepPreviousData', async () => {
     },
   }))
   const Counter = () => {
-    const [{ data }] = useAtom(countAtom)
+    const [
+      {
+        response: { count },
+      },
+    ] = useAtom(countAtom)
     return (
       <>
-        <div>count: {data?.response.count}</div>
+        <div>count: {count}</div>
       </>
     )
   }
@@ -276,6 +280,7 @@ it('query no-loading with keepPreviousData', async () => {
     </StrictMode>
   )
 
+  await findByText('loading')
   resolve()
   await findByText('count: 0')
 
@@ -339,6 +344,7 @@ it('query with enabled', async () => {
   expect(mockFetch).toHaveBeenCalledTimes(0)
 
   fireEvent.click(getByText('set slug'))
+  // await findByText('loading')
   resolve()
   await findByText('slug: hello-world')
   expect(mockFetch).toHaveBeenCalledTimes(1)
@@ -404,6 +410,7 @@ it('query with enabled 2', async () => {
     </StrictMode>
   )
 
+  // await findByText('loading')
   await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   expect(mockFetch).toHaveBeenCalledTimes(1)
   await findByText('slug: hello-first')
@@ -508,9 +515,9 @@ it('query with initialData test', async () => {
   }
 
   const { findByText } = render(
-    <>
+    <StrictMode>
       <Counter />
-    </>
+    </StrictMode>
   )
 
   // NOTE: the atom never suspends

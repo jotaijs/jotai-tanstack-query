@@ -38,7 +38,7 @@ export function atomsWithInfiniteQuery<
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): readonly [
   dataAtom: WritableAtom<
-    Promise<InfiniteData<TData>>,
+    InfiniteData<TData> | Promise<InfiniteData<TData>>,
     [Action],
     void | Promise<QueryObserverResult<InfiniteData<TData>, TError>>
   >,

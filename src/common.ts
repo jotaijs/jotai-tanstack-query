@@ -123,14 +123,21 @@ export const createAtoms = <
     return resultAtom
   })
 
+  const returnResultData = (result: Result) => {
+    if (result.error) {
+      throw result.error
+    }
+    return result.data
+  }
+
   const dataAtom = atom(
-    async (get) => {
+    (get) => {
       const resultAtom = get(baseDataAtom)
-      const result = await get(resultAtom)
-      if (result.error) {
-        throw result.error
+      const result = get(resultAtom)
+      if (result instanceof Promise) {
+        return result.then(returnResultData)
       }
-      return result.data
+      return returnResultData(result)
     },
     (_get, set, action: Action) => set(statusAtom, action)
   )
