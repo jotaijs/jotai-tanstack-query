@@ -1,26 +1,8 @@
-import React, {
-  Component,
-  StrictMode,
-  Suspense,
-  useCallback,
-  useContext,
-} from 'react'
+import React, { Component, StrictMode, Suspense, useCallback } from 'react'
 import type { ReactNode } from 'react'
 import { fireEvent, render } from '@testing-library/react'
-import {
-  atom,
-  SECRET_INTERNAL_getScopeContext as getScopeContext,
-  useAtom,
-  useSetAtom,
-} from 'jotai'
+import { atom, useAtom, useSetAtom } from 'jotai'
 import { atomsWithInfiniteQuery } from '../src/index'
-
-// This is only used to pass tests with unstable_enableVersionedWrite
-const useRetryFromError = (scope?: symbol | string | number) => {
-  const ScopeContext = getScopeContext(scope)
-  const { r: retryFromError } = useContext(ScopeContext)
-  return retryFromError || ((fn) => fn())
-}
 
 it('infinite query basic test', async () => {
   let resolve = () => {}
@@ -425,11 +407,8 @@ describe('error handling', () => {
 
     const App = () => {
       const dispatch = useSetAtom(countAtom)
-      const retryFromError = useRetryFromError()
       const retry = () => {
-        retryFromError(() => {
-          dispatch({ type: 'refetch', force: true, options: {} })
-        })
+        dispatch({ type: 'refetch', force: true, options: {} })
       }
       return (
         <ErrorBoundary retry={retry}>
