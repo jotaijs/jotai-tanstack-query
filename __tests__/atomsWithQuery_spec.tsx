@@ -2,7 +2,8 @@ import React, { Component, StrictMode, Suspense, useState } from 'react'
 import type { ReactNode } from 'react'
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { atomsWithQuery } from '../src/index'
 
 it('query basic test', async () => {

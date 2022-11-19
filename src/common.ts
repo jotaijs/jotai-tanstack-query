@@ -1,7 +1,7 @@
 import { QueryClient, isCancelledError } from '@tanstack/query-core'
-import { atom } from 'jotai'
-import type { Getter } from 'jotai'
-import { atomWithObservable } from 'jotai/utils'
+import { atom } from 'jotai/vanilla'
+import type { Getter } from 'jotai/vanilla'
+import { atomWithObservable } from 'jotai/vanilla/utils'
 
 export const createAtoms = <
   Options,
@@ -17,7 +17,7 @@ export const createAtoms = <
     subscribe(callback: (result: Result) => void): () => void
   },
   Action,
-  ActionResult extends Promise<void> | void
+  ActionResult
 >(
   getOptions: (get: Getter) => Options,
   getQueryClient: (get: Getter) => QueryClient,
@@ -124,9 +124,9 @@ export const createAtoms = <
   })
 
   const dataAtom = atom(
-    (get) => {
+    async (get) => {
       const resultAtom = get(baseDataAtom)
-      const result = get(resultAtom)
+      const result = await get(resultAtom)
       if (result.error) {
         throw result.error
       }
