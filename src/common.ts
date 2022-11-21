@@ -59,8 +59,7 @@ export const createAtoms = <
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
-          const notifyResult = () =>
-            (typeof arg === 'function' ? arg : arg.next)(result)
+          const notifyResult = () => arg.next(result)
           if ((observer as any)[IN_RENDER]) {
             Promise.resolve().then(notifyResult)
           } else {
@@ -105,8 +104,7 @@ export const createAtoms = <
             (result.isSuccess && result.data !== undefined) ||
             (result.isError && !isCancelledError(result.error))
           ) {
-            const notifyResult = () =>
-              (typeof arg === 'function' ? arg : arg.next)(result)
+            const notifyResult = () => arg.next(result)
             if ((observer as any)[IN_RENDER]) {
               Promise.resolve().then(notifyResult)
             } else {
