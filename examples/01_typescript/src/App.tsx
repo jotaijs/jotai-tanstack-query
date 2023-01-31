@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react'
-import { atomsWithQuery } from 'jotai-tanstack-query'
 import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
+import { atomsWithQuery } from 'jotai-tanstack-query'
 
 const idAtom = atom(1)
 

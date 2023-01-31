@@ -29,12 +29,12 @@ export function atomsWithQuery<
   dataAtom: WritableAtom<
     TData | Promise<TData>,
     [Action],
-    void | Promise<QueryObserverResult<TData, TError>>
+    Promise<QueryObserverResult<TData, TError>> | undefined
   >,
   statusAtom: WritableAtom<
     QueryObserverResult<TData, TError>,
     [Action],
-    void | Promise<QueryObserverResult<TData, TError>>
+    Promise<QueryObserverResult<TData, TError>> | undefined
   >
 ] {
   return createAtoms(

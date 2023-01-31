@@ -40,12 +40,12 @@ export function atomsWithInfiniteQuery<
   dataAtom: WritableAtom<
     InfiniteData<TData> | Promise<InfiniteData<TData>>,
     [Action],
-    void | Promise<QueryObserverResult<InfiniteData<TData>, TError>>
+    Promise<QueryObserverResult<InfiniteData<TData>, TError>> | undefined
   >,
   statusAtom: WritableAtom<
     InfiniteQueryObserverResult<TData, TError>,
     [Action],
-    void | Promise<QueryObserverResult<InfiniteData<TData>, TError>>
+    Promise<QueryObserverResult<InfiniteData<TData>, TError>> | undefined
   >
 ] {
   return createAtoms(
