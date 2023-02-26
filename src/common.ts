@@ -29,8 +29,9 @@ export const createAtoms = <
   ) => ActionResult
 ) => {
   const observerCacheAtom = atom(() => new WeakMap<QueryClient, Observer>())
-
+  observerCacheAtom.debugPrivate = true
   const refreshAtom = atom(0)
+  refreshAtom.debugPrivate = true
 
   // This is for a special property to indicate
   // that it is in the render function.
@@ -54,6 +55,8 @@ export const createAtoms = <
     return observer
   })
 
+  observerAtom.debugPrivate = true
+
   const baseStatusAtom = atom((get) => {
     const observer = get(observerAtom)
     const observable = {
@@ -74,8 +77,11 @@ export const createAtoms = <
     const resultAtom = atomWithObservable(() => observable, {
       initialValue: observer.getCurrentResult(),
     })
+    resultAtom.debugPrivate = true
     return resultAtom
   })
+
+  baseStatusAtom.debugPrivate = true
 
   const statusAtom = atom(
     (get) => {
@@ -118,8 +124,11 @@ export const createAtoms = <
       },
     }
     const resultAtom = atomWithObservable(() => observable)
+    resultAtom.debugPrivate = true
     return resultAtom
   })
+
+  baseDataAtom.debugPrivate = true
 
   const returnResultData = (result: Result) => {
     if (result.error) {
