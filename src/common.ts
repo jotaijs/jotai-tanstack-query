@@ -30,7 +30,14 @@ export const createAtoms = <
 ) => {
   const observerCacheAtom = atom(() => new WeakMap<QueryClient, Observer>())
 
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
+
   const refreshAtom = atom(0)
+  if (process.env.NODE_ENV !== 'production') {
+    refreshAtom.debugPrivate = true
+  }
 
   // This is for a special property to indicate
   // that it is in the render function.
@@ -54,6 +61,10 @@ export const createAtoms = <
     return observer
   })
 
+  if (process.env.NODE_ENV !== 'production') {
+    observerAtom.debugPrivate = true
+  }
+
   const baseStatusAtom = atom((get) => {
     const observer = get(observerAtom)
     const observable = {
@@ -74,8 +85,17 @@ export const createAtoms = <
     const resultAtom = atomWithObservable(() => observable, {
       initialValue: observer.getCurrentResult(),
     })
+
+    if (process.env.NODE_ENV !== 'production') {
+      resultAtom.debugPrivate = true
+    }
+
     return resultAtom
   })
+
+  if (process.env.NODE_ENV !== 'production') {
+    baseStatusAtom.debugPrivate = true
+  }
 
   const statusAtom = atom(
     (get) => {
@@ -118,8 +138,17 @@ export const createAtoms = <
       },
     }
     const resultAtom = atomWithObservable(() => observable)
+
+    if (process.env.NODE_ENV !== 'production') {
+      resultAtom.debugPrivate = true
+    }
+
     return resultAtom
   })
+
+  if (process.env.NODE_ENV !== 'production') {
+    baseDataAtom.debugPrivate = true
+  }
 
   const returnResultData = (result: Result) => {
     if (result.error) {
