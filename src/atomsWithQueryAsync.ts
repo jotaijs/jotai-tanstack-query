@@ -1,8 +1,6 @@
-import type { Getter, ExtractAtomValue, WritableAtom } from 'jotai'
 import type { QueryKey, QueryObserverOptions } from '@tanstack/query-core'
-
+import type { ExtractAtomValue, Getter, WritableAtom } from 'jotai'
 import { atom } from 'jotai'
-
 import { atomsWithQuery } from './atomsWithQuery'
 
 type ExtractAtomArgs<AtomType> = AtomType extends WritableAtom<
