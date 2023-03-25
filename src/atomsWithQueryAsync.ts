@@ -1,15 +1,7 @@
 import type { QueryKey, QueryObserverOptions } from '@tanstack/query-core'
-import type { ExtractAtomValue, Getter, WritableAtom } from 'jotai'
+import type { ExtractAtomArgs, ExtractAtomValue, Getter } from 'jotai'
 import { atom } from 'jotai'
 import { atomsWithQuery } from './atomsWithQuery'
-
-type ExtractAtomArgs<AtomType> = AtomType extends WritableAtom<
-  any,
-  infer Args,
-  any
->
-  ? Args
-  : never
 
 export function atomsWithQueryAsync<
   TQueryFnData = unknown,
