@@ -1,7 +1,10 @@
 import type { QueryKey, QueryObserverOptions } from '@tanstack/query-core'
-import type { ExtractAtomArgs, ExtractAtomValue, Getter } from 'jotai'
+import type { Getter, ExtractAtomArgs, ExtractAtomValue } from 'jotai'
+import { QueryClient, QueryObserver } from '@tanstack/query-core'
 import { atom } from 'jotai'
 import { atomsWithQuery } from './atomsWithQuery'
+import { createAtoms } from './common'
+import { queryClientAtom } from './queryClientAtom'
 
 export function atomsWithQueryAsync<
   TQueryFnData = unknown,
@@ -14,11 +17,22 @@ export function atomsWithQueryAsync<
     get: Getter
   ) => Promise<
     QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
-  >
+  >,
+  getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   const atomsAtom = atom(async (get) => {
     const options = await getOptions(get)
-    return atomsWithQuery(() => options)
+
+    return createAtoms(
+      () => options,
+      getQueryClient,
+      (client, options) => new QueryObserver(client, options),
+      (action, observer, _) => {
+        if (action.type === 'refetch') {
+          return observer.refetch(action.options)
+        }
+      }
+    ) as ReturnType<typeof atomsWithQuery<TData>>
   })
 
   const dataAtom = atom(
@@ -44,5 +58,6 @@ export function atomsWithQueryAsync<
       return set(a, ...args)
     }
   )
+
   return [dataAtom, statusAtom] as const
 }

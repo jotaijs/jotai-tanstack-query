@@ -1,25 +1,32 @@
 import React, { StrictMode, Suspense } from 'react'
-import { render } from '@testing-library/react'
+import { render, fireEvent } from '@testing-library/react'
 import { atom, useAtom } from 'jotai'
 import { atomsWithQueryAsync } from '../src/index'
 
-it('async query basic test', async () => {
-  let resolveFunc = () => {}
-  let resolveQuery = () => {}
+beforeEach(() => {
+  jest.useFakeTimers({
+    legacyFakeTimers: true,
+  })
+})
+afterEach(() => {
+  jest.runAllTimers()
+  jest.useRealTimers()
+})
 
-  const func = async () => {
-    await new Promise<void>((r) => (resolveFunc = r))
-    return 2
-  }
+it('async query basic test', async () => {
+  const fn = jest.fn(() => Promise.resolve(2))
+  const queryFn = jest.fn((id) => {
+    return Promise.resolve({ response: { id } })
+  })
 
   const [userAtom] = atomsWithQueryAsync(async () => {
-    const userId = await func()
+    const userId = await fn()
 
     return {
       queryKey: ['userId', userId],
       queryFn: async ({ queryKey: [, id] }) => {
-        await new Promise<void>((r) => (resolveQuery = r))
-        return { response: { id: id as number } }
+        const res = await queryFn(id)
+        return res
       },
     }
   })
@@ -32,7 +39,7 @@ it('async query basic test', async () => {
 
     return (
       <>
-        <div>id: {id}</div>
+        <p>id: {id}</p>
       </>
     )
   }
@@ -45,19 +52,17 @@ it('async query basic test', async () => {
   )
 
   await findByText('loading')
-  resolveFunc()
-  await new Promise((r) => setTimeout(r)) // wait a tick
-  resolveQuery()
   await findByText('id: 2')
 })
 
 it('async query from derived atom', async () => {
-  let resolveAtom = () => {}
-  let resolveQuery = () => {}
+  const atomFn = jest.fn(() => Promise.resolve(2))
+  const queryFn = jest.fn((id) => {
+    return Promise.resolve({ response: { id } })
+  })
 
   const userIdAtom = atom(async () => {
-    await new Promise<void>((r) => (resolveAtom = r))
-    return 2
+    return await atomFn()
   })
   const [userAtom] = atomsWithQueryAsync(async (get) => {
     const userId = await get(userIdAtom)
@@ -65,8 +70,8 @@ it('async query from derived atom', async () => {
     return {
       queryKey: ['userId', userId],
       queryFn: async ({ queryKey: [, id] }) => {
-        await new Promise<void>((r) => (resolveQuery = r))
-        return { response: { id: id as number } }
+        const res = await queryFn(id)
+        return res
       },
     }
   })
@@ -92,21 +97,19 @@ it('async query from derived atom', async () => {
   )
 
   await findByText('loading')
-  resolveAtom()
-  await new Promise((r) => setTimeout(r)) // wait a tick
-  resolveQuery()
   await findByText('id: 2')
 })
 
-it('async query refetch', async () => {
+it('refetch async query, force arg has no effect', async () => {
   let defaultId = 0
-  const mockFetch = jest.fn((response) => ({ response }))
-  let resolveFunc = () => {}
-  let resolveQuery = () => {}
+
+  const fn = jest.fn(() => Promise.resolve('uniqueKey'))
+  const queryFn = jest.fn((id) => {
+    return Promise.resolve({ response: { id } })
+  })
 
   const func = async () => {
-    await new Promise<void>((r) => (resolveFunc = r))
-    return 'extraKey'
+    return await fn()
   }
 
   const [userAtom] = atomsWithQueryAsync(async () => {
@@ -115,12 +118,13 @@ it('async query refetch', async () => {
     return {
       queryKey: ['userId', extraKey],
       queryFn: async () => {
-        await new Promise<void>((r) => (resolveQuery = r))
-        const response = mockFetch({ id: defaultId })
-        return response
+        const res = await queryFn(defaultId)
+        defaultId++
+        return res
       },
     }
   })
+
   const User = () => {
     const [
       {
@@ -131,18 +135,14 @@ it('async query refetch', async () => {
     return (
       <>
         <div>id: {id}</div>
-        <button
-          onClick={() => {
-            ++defaultId
-            dispatch({ type: 'refetch', force: true })
-          }}>
+        <button onClick={() => dispatch({ type: 'refetch', force: true })}>
           refetch
         </button>
       </>
     )
   }
 
-  const { findByText } = render(
+  const { findByText, getByText } = render(
     <StrictMode>
       <Suspense fallback="loading">
         <User />
@@ -151,18 +151,8 @@ it('async query refetch', async () => {
   )
 
   await findByText('loading')
-  resolveFunc()
-  await new Promise((r) => r) // wait a tick
-  resolveQuery()
   await findByText('id: 0')
-  expect(mockFetch).toBeCalledTimes(1)
 
-  // This fails
-  // fireEvent.click(getByText('refetch'))
-  // await findByText('loading')
-  // resolveFunc()
-  // await new Promise((r) => r) // wait a tick
-  // resolveQuery()
-  // await findByText('id: 1')
-  // expect(mockFetch).toBeCalledTimes(2)
+  fireEvent.click(getByText('refetch'))
+  await findByText('id: 1')
 })
