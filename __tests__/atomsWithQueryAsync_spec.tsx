@@ -1,12 +1,12 @@
-import React, { StrictMode, Suspense } from 'react'
+import type { ReactNode } from 'react'
+import React, { Component, StrictMode, Suspense } from 'react'
 import { render, fireEvent } from '@testing-library/react'
+import { QueryClient } from '@tanstack/query-core'
 import { atom, useAtom } from 'jotai'
 import { atomsWithQueryAsync } from '../src/index'
 
 beforeEach(() => {
-  jest.useFakeTimers({
-    legacyFakeTimers: true,
-  })
+  jest.useFakeTimers()
 })
 afterEach(() => {
   jest.runAllTimers()
@@ -39,7 +39,7 @@ it('async query basic test', async () => {
 
     return (
       <>
-        <p>id: {id}</p>
+        <div>id: {id}</div>
       </>
     )
   }
@@ -108,12 +108,8 @@ it('refetch async query, force arg has no effect', async () => {
     return Promise.resolve({ response: { id } })
   })
 
-  const func = async () => {
-    return await fn()
-  }
-
   const [userAtom] = atomsWithQueryAsync(async () => {
-    const extraKey = await func()
+    const extraKey = await fn()
 
     return {
       queryKey: ['userId', extraKey],
@@ -155,4 +151,133 @@ it('refetch async query, force arg has no effect', async () => {
 
   fireEvent.click(getByText('refetch'))
   await findByText('id: 1')
+})
+
+describe('error handling', () => {
+  class ErrorBoundary extends Component<
+    { message?: string; retry?: () => void; children: ReactNode },
+    { hasError: boolean }
+  > {
+    constructor(props: { message?: string; children: ReactNode }) {
+      super(props)
+      this.state = { hasError: false }
+    }
+    static getDerivedStateFromError() {
+      return { hasError: true }
+    }
+    render() {
+      return this.state.hasError ? (
+        <div>
+          {this.props.message || 'errored'}
+          {this.props.retry && (
+            <button
+              onClick={() => {
+                this.props.retry?.()
+                this.setState({ hasError: false })
+              }}>
+              retry
+            </button>
+          )}
+        </div>
+      ) : (
+        this.props.children
+      )
+    }
+  }
+
+  it('can catch error in error boundary', async () => {
+    const fn = jest.fn(() => Promise.resolve('uniqueKey'))
+    const queryFn = jest.fn(() => {
+      return Promise.resolve()
+    })
+
+    const [userAtom] = atomsWithQueryAsync(async () => {
+      const extraKey = await fn()
+
+      return {
+        queryKey: ['error test', extraKey],
+        retry: false,
+        queryFn: async (): Promise<{ response: { id: number } }> => {
+          await queryFn()
+          throw new Error('fetch error')
+        },
+      }
+    })
+
+    const User = () => {
+      const [
+        {
+          response: { id },
+        },
+      ] = useAtom(userAtom)
+      return (
+        <>
+          <div>id: {id}</div>
+        </>
+      )
+    }
+
+    const { findByText } = render(
+      <StrictMode>
+        <ErrorBoundary>
+          <Suspense fallback="loading">
+            <User />
+          </Suspense>
+        </ErrorBoundary>
+      </StrictMode>
+    )
+
+    await findByText('loading')
+    await findByText('errored')
+  })
+})
+
+it('query expected QueryCache test', async () => {
+  const queryClient = new QueryClient()
+
+  const fn = jest.fn(() => Promise.resolve('uniqueKey'))
+  const queryFn = jest.fn(() => {
+    return Promise.resolve(2)
+  })
+
+  const [userAtom] = atomsWithQueryAsync(
+    async () => {
+      const extraKey = await fn()
+
+      return {
+        queryKey: [extraKey],
+        queryFn: async () => {
+          const id = await queryFn()
+          return { response: { id } }
+        },
+      }
+    },
+    () => queryClient
+  )
+
+  const User = () => {
+    const [
+      {
+        response: { id },
+      },
+    ] = useAtom(userAtom)
+
+    return (
+      <>
+        <div>id: {id}</div>
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <Suspense fallback="loading">
+        <User />
+      </Suspense>
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  await findByText('id: 2')
+  expect(queryClient.getQueryCache().getAll().length).toBe(1)
 })
