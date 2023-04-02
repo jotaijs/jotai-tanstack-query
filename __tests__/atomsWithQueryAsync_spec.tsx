@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import React, { Component, StrictMode, Suspense } from 'react'
-import { render, fireEvent } from '@testing-library/react'
 import { QueryClient } from '@tanstack/query-core'
+import { fireEvent, render } from '@testing-library/react'
 import { atom, useAtom } from 'jotai'
 import { atomsWithQueryAsync } from '../src/index'
 
@@ -100,7 +100,7 @@ it('async query from derived atom', async () => {
   await findByText('id: 2')
 })
 
-it('refetch async query, force arg has no effect', async () => {
+it('refetch async query', async () => {
   let defaultId = 0
 
   const fn = jest.fn(() => Promise.resolve('uniqueKey'))
@@ -151,6 +151,12 @@ it('refetch async query, force arg has no effect', async () => {
 
   fireEvent.click(getByText('refetch'))
   await findByText('id: 1')
+
+  fireEvent.click(getByText('refetch'))
+  await findByText('id: 2')
+
+  fireEvent.click(getByText('refetch'))
+  await findByText('id: 3')
 })
 
 describe('error handling', () => {
@@ -166,10 +172,10 @@ describe('error handling', () => {
       return { hasError: true }
     }
     render() {
-      return this.state.hasError ? (
-        <div>
-          {this.props.message || 'errored'}
-          {this.props.retry && (
+      if (this.state.hasError) {
+        return (
+          <div>
+            {this.props.message || 'errored'}
             <button
               onClick={() => {
                 this.props.retry?.()
@@ -177,11 +183,11 @@ describe('error handling', () => {
               }}>
               retry
             </button>
-          )}
-        </div>
-      ) : (
-        this.props.children
-      )
+          </div>
+        )
+      }
+
+      return this.props.children
     }
   }
 
