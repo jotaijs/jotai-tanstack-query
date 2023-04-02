@@ -1,7 +1,6 @@
 import { QueryClient, isCancelledError } from '@tanstack/query-core'
-import {} from '@tanstack/query-core'
-import { atom } from 'jotai/vanilla'
 import type { Getter } from 'jotai/vanilla'
+import { atom } from 'jotai/vanilla'
 import { atomWithObservable } from 'jotai/vanilla/utils'
 
 export const createAtoms = <
