@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2023-04-03
+### Added
+- feat: atomsWithQueryAsync, plus example #30
+
 ## [0.6.0] - 2023-03-03
 ### Added
 - feat: mark internal atoms as private
