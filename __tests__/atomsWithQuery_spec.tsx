@@ -766,3 +766,46 @@ it('query expected QueryCache test', async () => {
   await findByText('count: 0')
   expect(queryClient.getQueryCache().getAll().length).toBe(1)
 })
+
+// Test for bug described here:
+// https://github.com/jotaijs/jotai-tanstack-query/issues/34
+it('renews the result when the query changes and a non stale cache is available', async () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },
+  })
+  queryClient.setQueryData([2], 2)
+
+  const currentCountAtom = atom(1)
+
+  const [, countAtom] = atomsWithQuery(
+    (get) => {
+      const currentCount = get(currentCountAtom)
+      return {
+        queryKey: [currentCount],
+        queryFn: () => currentCount,
+      }
+    },
+    () => queryClient
+  )
+
+  const Counter = () => {
+    const setCurrentCount = useSetAtom(currentCountAtom)
+    const [{ data: count }] = useAtom(countAtom)
+    return (
+      <>
+        <button onClick={() => setCurrentCount(2)}>Set count to 2</button>
+        <div>count: {count}</div>
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <Counter />
+    </StrictMode>
+  )
+
+  await findByText('count: 1')
+  fireEvent.click(await findByText('Set count to 2'))
+  await findByText('count: 2')
+})

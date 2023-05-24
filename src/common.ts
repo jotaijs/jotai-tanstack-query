@@ -12,7 +12,7 @@ export const createAtoms = <
     error: any
   },
   Observer extends {
-    setOptions(options: Options, notifyOptions?: { listeners?: boolean }): void
+    setOptions(options: Options): void
     getCurrentResult(): Result
     subscribe(callback: (result: Result) => void): () => void
   },
@@ -52,7 +52,7 @@ export const createAtoms = <
     let observer = observerCache.get(queryClient)
     if (observer) {
       ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options, { listeners: false })
+      observer.setOptions(options)
       delete (observer as any)[IN_RENDER]
     } else {
       observer = createObserver(queryClient, options)
@@ -181,7 +181,7 @@ export const createAsyncAtoms = <
     error: any
   },
   Observer extends {
-    setOptions(options: Options, notifyOptions?: { listeners?: boolean }): void
+    setOptions(options: Options): void
     getCurrentResult(): Result
     subscribe(callback: (result: Result) => void): () => void
   },
@@ -221,7 +221,7 @@ export const createAsyncAtoms = <
     let observer = observerCache.get(queryClient)
     if (observer) {
       ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options, { listeners: false })
+      observer.setOptions(options)
       delete (observer as any)[IN_RENDER]
     } else {
       observer = createObserver(queryClient, options)
