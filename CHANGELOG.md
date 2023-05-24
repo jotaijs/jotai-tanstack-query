@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2023-05-25
+### Changed
+- Fix result of statusAtom sometimes not updated #35
+
 ## [0.7.0] - 2023-04-03
 ### Added
 - feat: atomsWithQueryAsync, plus example #30
