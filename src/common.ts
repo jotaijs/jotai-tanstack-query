@@ -58,6 +58,7 @@ export const createAtoms = <
       observer = createObserver(queryClient, options)
       observerCache.set(queryClient, observer)
     }
+    observer.getCurrentResult()
     return observer
   })
 
@@ -102,7 +103,7 @@ export const createAtoms = <
       const resultAtom = get(baseStatusAtom)
       return get(resultAtom)
     },
-    (get, set, action: Action) => {
+    (get, set, action: Action | 'refresh') => {
       const observer = get(observerAtom)
       const refresh = () => {
         const queryClient = getQueryClient(get)
@@ -110,9 +111,14 @@ export const createAtoms = <
         observerCache.delete(queryClient)
         set(refreshAtom, (c) => c + 1)
       }
+      if (action === 'refresh') {
+        refresh()
+        return observer.getCurrentResult() as unknown as ActionResult
+      }
       return handleAction(action, observer, refresh)
     }
   )
+  statusAtom.onMount = (setAtom) => () => setAtom('refresh')
 
   const baseDataAtom = atom((get) => {
     getOptions(get) // re-create observable when options change
