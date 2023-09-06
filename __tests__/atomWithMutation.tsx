@@ -7,34 +7,29 @@ it('atomsWithMutation should be refreshed on unmount (#2060)', async () => {
   let resolve: (() => void) | undefined
   const [, testAtom] = atomsWithMutation<number, number, number, number>(
     () => ({
-      mutationKey: ["test-atom"],
+      mutationKey: ['test-atom'],
       mutationFn: async (a) => {
         await new Promise<void>((r) => {
           resolve = r
         })
-        return a;
+        return a
       },
     })
-  );
+  )
 
   function App() {
-    const [mount, setMount] = useState<boolean>(true);
+    const [mount, setMount] = useState<boolean>(true)
     return (
-      <div
-      >
-        <button onClick={() => setMount(false)}>
-          unmount
-        </button>
-        <button onClick={() => setMount(true)}>
-          mount
-        </button>
+      <div>
+        <button onClick={() => setMount(false)}>unmount</button>
+        <button onClick={() => setMount(true)}>mount</button>
         {mount && <TestView />}
       </div>
-    );
+    )
   }
 
   function TestView() {
-    const [state, mutate] = useAtom(testAtom);
+    const [state, mutate] = useAtom(testAtom)
     return (
       <div>
         <p>status: {state.status}</p>
@@ -42,7 +37,7 @@ it('atomsWithMutation should be refreshed on unmount (#2060)', async () => {
           mutate
         </button>
       </div>
-    );
+    )
   }
 
   const { findByText, getByText } = render(<App />)
