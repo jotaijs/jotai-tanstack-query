@@ -58,7 +58,6 @@ export const createAtoms = <
       observer = createObserver(queryClient, options)
       observerCache.set(queryClient, observer)
     }
-    observer.getCurrentResult()
     return observer
   })
 
