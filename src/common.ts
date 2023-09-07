@@ -112,7 +112,7 @@ export const createAtoms = <
       }
       if (action === 'refresh') {
         refresh()
-        return observer.getCurrentResult() as unknown as ActionResult
+        return undefined as unknown as never
       }
       return handleAction(action, observer, refresh)
     }
