@@ -10,14 +10,14 @@ import { queryClientAtom } from './queryClientAtom'
 
 type Action<TData, TError, TVariables, TContext> = [
   variables: TVariables,
-  options?: MutateOptions<TData, TError, TVariables, TContext>
+  options?: MutateOptions<TData, TError, TVariables, TContext>,
 ]
 
 export function atomsWithMutation<
   TData = unknown,
   TError = unknown,
   TVariables = void,
-  TContext = unknown
+  TContext = unknown,
 >(
   getOptions: (
     get: Getter
@@ -33,7 +33,7 @@ export function atomsWithMutation<
     MutationObserverResult<TData, TError, TVariables, TContext>,
     [Action<TData, TError, TVariables, TContext>],
     Promise<TData>
-  >
+  >,
 ] {
   return createAtoms(
     getOptions,

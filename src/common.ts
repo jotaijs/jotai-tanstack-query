@@ -17,7 +17,7 @@ export const createAtoms = <
     subscribe(callback: (result: Result) => void): () => void
   },
   Action,
-  ActionResult
+  ActionResult,
 >(
   getOptions: (get: Getter) => Options,
   getQueryClient: (get: Getter) => QueryClient,
@@ -191,7 +191,7 @@ export const createAsyncAtoms = <
     subscribe(callback: (result: Result) => void): () => void
   },
   Action,
-  ActionResult
+  ActionResult,
 >(
   getOptions: (get: Getter) => Promise<Options>,
   getQueryClient: (get: Getter) => QueryClient,

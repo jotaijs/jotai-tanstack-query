@@ -19,7 +19,7 @@ export function atomsWithQueryAsync<
   TError = unknown,
   TData = TQueryFnData,
   TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey
+  TQueryKey extends QueryKey = QueryKey,
 >(
   getOptions: (
     get: Getter
@@ -37,7 +37,7 @@ export function atomsWithQueryAsync<
     QueryObserverResult<TData, TError>,
     [Action],
     Promise<QueryObserverResult<TData, TError>> | undefined
-  >
+  >,
 ] {
   return createAsyncAtoms(
     getOptions,

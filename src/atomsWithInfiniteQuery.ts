@@ -24,7 +24,7 @@ export function atomsWithInfiniteQuery<
   TError = unknown,
   TData = TQueryFnData,
   TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey
+  TQueryKey extends QueryKey = QueryKey,
 >(
   getOptions: (
     get: Getter
@@ -46,7 +46,7 @@ export function atomsWithInfiniteQuery<
     InfiniteQueryObserverResult<TData, TError>,
     [Action],
     Promise<QueryObserverResult<InfiniteData<TData>, TError>> | undefined
-  >
+  >,
 ] {
   return createAtoms(
     getOptions,
