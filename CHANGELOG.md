@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.7.2] - 2023-09-08
+### Changed
+- fix: loading mutation does not call refresh on unmount #38
+
 ## [0.7.1] - 2023-05-25
 ### Changed
 - Fix result of statusAtom sometimes not updated #35

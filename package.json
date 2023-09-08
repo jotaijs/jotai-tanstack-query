@@ -1,8 +1,11 @@
 {
   "name": "jotai-tanstack-query",
   "description": "👻🌺",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "author": "Daishi Kato",
+  "contributors": [
+    "Mohammad Bagher Abiat"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/jotaijs/jotai-tanstack-query.git"
