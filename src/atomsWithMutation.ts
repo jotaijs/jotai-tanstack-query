@@ -11,7 +11,6 @@ import { queryClientAtom } from './queryClientAtom'
 type Action<TData, TError, TVariables, TContext> = [
   variables: TVariables,
   options?: MutateOptions<TData, TError, TVariables, TContext>
-  // type?: 'refresh'
 ]
 
 export function atomsWithMutation<
