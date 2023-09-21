@@ -15,6 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "jotai-tanstack-query": ["./src"]
-    }
-  }
+    },
+    "noErrorTruncation": true
+  },
+  "exclude": ["webpack.config.js"]
 }

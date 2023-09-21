@@ -125,12 +125,14 @@ export const createAtoms = <
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
         const callback = (result: Result) => {
+          console.log(JSON.stringify({ result }))
           if (
             (result.isSuccess && result.data !== undefined) ||
             (result.isError && !isCancelledError(result.error))
           ) {
             const notifyResult = () => arg.next(result)
             if ((observer as any)[IN_RENDER]) {
+              console.log('in render')
               Promise.resolve().then(notifyResult)
             } else {
               notifyResult()
