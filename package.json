@@ -33,7 +33,7 @@
     "postcompile": "cp dist/index.modern.mjs dist/index.modern.js && cp dist/index.modern.mjs.map dist/index.modern.js.map",
     "test": "run-s eslint tsc-test jest",
     "eslint": "eslint --ext .js,.ts,.tsx .",
-    "jest": "jest __tests__/atomWithQuery_spec.tsx",
+    "jest": "jest __tests__/atomWithQuery_spec.tsx --watch",
     "tsc-test": "tsc --project . --noEmit",
     "examples:01_typescript": "DIR=01_typescript EXT=tsx webpack serve",
     "examples:02_refetch": "DIR=02_refetch EXT=tsx webpack serve",
