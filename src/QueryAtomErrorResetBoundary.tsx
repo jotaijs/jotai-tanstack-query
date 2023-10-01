@@ -34,7 +34,7 @@ export const QueryErrorResetBoundary = ({
     store.set(valueAtom, 'reset')
   }
 
-  //feels hacky.
+  // feels hacky.
   // Right after the reset is set, we need to set it back to clear so that  when we refetch, it doesn't think it's in a reset state
   store.sub(isResetAtom, () => {
     Promise.resolve().then(() => store.set(valueAtom, 'clear'))
