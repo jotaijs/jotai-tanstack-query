@@ -99,9 +99,7 @@
       },
       "alias": {
         "extensions": [".js", ".jsx", ".ts", ".tsx", ".json"],
-        "map": [
-          ["^jotai-tanstack-query$", "./src/index.ts"]
-        ]
+        "map": [["^jotai-tanstack-query$", "./src/index.ts"]]
       }
     }
   },

@@ -7,16 +7,14 @@
     "module": "es2015",
     "moduleResolution": "node",
     "allowJs": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "jsx": "react",
     "baseUrl": ".",
     "paths": {
       "jotai-tanstack-query": ["./src"]
-    },
-    "noErrorTruncation": true
-  },
-  "exclude": ["webpack.config.js"]
+    }
+  }
 }

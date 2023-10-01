@@ -9,538 +9,548 @@ import React, {
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
 import { Getter, atom, useAtom, useSetAtom } from 'jotai'
-import { atomWithQuery, atomsWithQuery } from '../src'
+import { QueryErrorResetBoundary, atomWithQuery } from '../src'
 beforeEach(() => {
   jest.useFakeTimers()
 })
 afterEach(() => {
   jest.runAllTimers()
   jest.useRealTimers()
+  jest.clearAllMocks()
 })
 
-// it('query basic test', async () => {
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery(() => ({
-//     queryKey: ['test1'],
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       return { response: { count: 0 } }
-//     },
-//     suspense: true,
-//   }))
-//   const Counter = () => {
-//     const [
-//       {
-//         data: {
-//           response: { count },
-//         },
-//       },
-//     ] = useAtom(countAtom)
+it('query basic test', async () => {
+  let resolve = () => {}
+  const countAtom = atomWithQuery(() => ({
+    queryKey: ['test1'],
+    queryFn: async () => {
+      await new Promise<void>((r) => (resolve = r))
+      return { response: { count: 0 } }
+    },
+  }))
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
+    const { data, isLoading, isError } = countData
 
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   const { findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback={'loading'}>
-//         <Counter />
-//       </Suspense>
-//     </StrictMode>
-//   )
+    if (isError) {
+      return <>errorred</>
+    }
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
-// })
+    return (
+      <>
+        <div>count: {data.response.count}</div>
+      </>
+    )
+  }
 
-// it('query basic test without suspense', async () => {
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery(() => ({
-//     queryKey: ['test2'],
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       return { response: { count: 0 } }
-//     },
-//   }))
-//   const Counter = () => {
-//     const [countData] = useAtom(countAtom)
-//     const count = countData.data?.response.count
+  const { findByText } = render(
+    <StrictMode>
+      <Counter />
+    </StrictMode>
+  )
 
-//     if (countData.status === 'loading') {
-//       return <div>loading</div>
-//     }
+  await findByText('loading')
+  resolve()
+  await findByText('count: 0')
+})
 
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
+it('query refetch', async () => {
+  let count = 0
+  const mockFetch = jest.fn<
+    { response: { count: number } },
+    { count: number }[]
+  >((response) => ({
+    response,
+  }))
+  let resolve = () => {}
+  const countAtom = atomWithQuery(() => ({
+    queryKey: ['test3'],
+    queryFn: async () => {
+      await new Promise<void>((r) => (resolve = r))
+      const response = mockFetch({ count })
+      ++count
+      return response
+    },
+  }))
+  const Counter = () => {
+    const [{ data, isLoading, isError, refetch }] = useAtom(countAtom)
 
-//   const { findByText } = render(
-//     <StrictMode>
-//       <Counter />
-//     </StrictMode>
-//   )
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
-// })
+    if (isError) {
+      return <>errorred</>
+    }
 
-// it('query refetch', async () => {
-//   let count = 0
-//   const mockFetch = jest.fn((response) => ({ response }))
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery(() => ({
-//     queryKey: ['test3'],
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       const response = mockFetch({ count })
-//       ++count
-//       return response
-//     },
-//     suspense: true,
-//   }))
-//   const Counter = () => {
-//     const [
-//       {
-//         data: {
-//           response: { count },
-//         },
-//         refetch,
-//       },
-//     ] = useAtom(countAtom)
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//         <button onClick={() => refetch()}>refetch</button>
-//       </>
-//     )
-//   }
+    return (
+      <>
+        <div>count: {data?.response.count}</div>
+        <button onClick={() => refetch()}>refetch</button>
+      </>
+    )
+  }
 
-//   const { findByText, getByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Counter />
-//       </Suspense>
-//     </StrictMode>
-//   )
+  const { findByText, getByText } = render(
+    <StrictMode>
+      <Counter />
+    </StrictMode>
+  )
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
-//   expect(mockFetch).toBeCalledTimes(1)
+  await findByText('loading')
+  resolve()
+  await findByText('count: 0')
+  expect(mockFetch).toBeCalledTimes(1)
 
-//   fireEvent.click(getByText('refetch'))
-//   // await findByText('loading') //refetch implementation in tanstack doesn't trigger loading state
-//   resolve()
-//   await findByText('count: 1')
-//   expect(mockFetch).toBeCalledTimes(2)
-// })
+  fireEvent.click(getByText('refetch'))
+  await expect(() => findByText('loading')).rejects.toThrow() //refetch implementation in tanstack doesn't trigger loading state
+  resolve()
+  await findByText('count: 1')
+  expect(mockFetch).toBeCalledTimes(2)
+})
 
-// it('query refetch 2', async () => {
-//   let count = 0
-//   const mockFetch = jest.fn((response) => ({ response }))
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery(() => ({
-//     queryKey: ['test4'],
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       const response = mockFetch({ count })
-//       ++count
-//       return response
-//     },
-//     suspense: true,
-//   }))
-//   const Counter = () => {
-//     const [
-//       {
-//         data: {
-//           response: { count },
-//         },
-//         refetch,
-//       },
-//     ] = useAtom(countAtom)
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//         <button onClick={() => refetch()}>refetch</button>
-//       </>
-//     )
-//   }
+it('query no-loading with keepPreviousData', async () => {
+  const dataAtom = atom(0)
+  const mockFetch = jest.fn<
+    { response: { count: number } },
+    { count: number }[]
+  >((response) => ({ response }))
+  let resolve = () => {}
+  const countAtom = atomWithQuery((get) => ({
+    queryKey: ['test5', get(dataAtom)],
+    keepPreviousData: true,
+    queryFn: async () => {
+      await new Promise<void>((r) => (resolve = r))
+      const response = mockFetch({ count: get(dataAtom) })
+      return response
+    },
+  }))
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
+    const { data, isLoading, isError } = countData
 
-//   const { findByText, getByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Counter />
-//       </Suspense>
-//     </StrictMode>
-//   )
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
-//   expect(mockFetch).toBeCalledTimes(1)
+    if (isError) {
+      return <>errorred</>
+    }
 
-//   fireEvent.click(getByText('refetch'))
-//   // await findByText('loading') //refetch implementation in tanstack doesn't trigger loading state
-//   resolve()
-//   await findByText('count: 1')
-//   expect(mockFetch).toBeCalledTimes(2)
-//   fireEvent.click(getByText('refetch'))
-//   resolve()
-//   await findByText('count: 2')
-// })
+    return (
+      <>
+        <div>count: {data.response.count}</div>
+      </>
+    )
+  }
+  const RefreshButton = () => {
+    const [data, setData] = useAtom(dataAtom)
+    return <button onClick={() => setData(data + 1)}>refetch</button>
+  }
 
-// it('query no-loading with keepPreviousData', async () => {
-//   const dataAtom = atom(0)
-//   const mockFetch = jest.fn((response) => ({ response }))
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery((get) => ({
-//     queryKey: ['test5', get(dataAtom)],
-//     keepPreviousData: true,
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       const response = mockFetch({ count: get(dataAtom) })
-//       return response
-//     },
-//     suspense: true,
-//   }))
-//   const Counter = () => {
-//     const [countData] = useAtom(countAtom)
+  const { findByText, getByText } = render(
+    <StrictMode>
+      <Counter />
+      <RefreshButton />
+    </StrictMode>
+  )
 
-//     const {
-//       data: {
-//         response: { count },
-//       },
-//     } = countData
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
-//   const RefreshButton = () => {
-//     const [data, setData] = useAtom(dataAtom)
-//     return <button onClick={() => setData(data + 1)}>refetch</button>
-//   }
+  await findByText('loading')
+  resolve()
+  await findByText('count: 0')
 
-//   const { findByText, getByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Counter />
-//       </Suspense>
-//       <RefreshButton />
-//     </StrictMode>
-//   )
+  fireEvent.click(getByText('refetch'))
+  await expect(() => findByText('loading')).rejects.toThrow()
+  resolve()
+  await findByText('count: 1')
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
+  fireEvent.click(getByText('refetch'))
+  await expect(() => findByText('loading')).rejects.toThrow()
+  resolve()
 
-//   fireEvent.click(getByText('refetch'))
-//   await expect(() => findByText('loading')).rejects.toThrow()
-//   resolve()
-//   await findByText('count: 1')
+  expect(true)
+  await findByText('count: 2')
+})
 
-//   fireEvent.click(getByText('refetch'))
-//   await expect(() => findByText('loading')).rejects.toThrow()
-//   resolve()
+it('query with enabled', async () => {
+  const slugAtom = atom<string | null>(null)
+  const mockFetch = jest.fn<{ response: { slug: string } }, { slug: string }[]>(
+    (response) => ({ response })
+  )
+  let resolve = () => {}
+  const slugQueryAtom = atomWithQuery((get) => {
+    const slug = get(slugAtom)
+    return {
+      enabled: !!slug,
+      queryKey: ['disabled_until_value', slug],
+      queryFn: async () => {
+        await new Promise<void>((r) => (resolve = r))
+        return mockFetch({ slug: `hello-${slug}` })
+      },
+    }
+  })
 
-//   expect(true)
-//   await findByText('count: 2')
-// })
+  const Slug = () => {
+    const [slugQueryData] = useAtom(slugQueryAtom)
 
-// // #############################
-// // #####################################
+    const { data, isLoading, isError, status, fetchStatus } = slugQueryData
 
-// it('query with enabled', async () => {
-//   const slugAtom = atom<string | null>(null)
-//   const mockFetch = jest.fn((response) => ({ response }))
-//   let resolve = () => {}
-//   const slugQueryAtom = atomWithQuery((get) => {
-//     const slug = get(slugAtom)
-//     return {
-//       enabled: !!slug,
-//       queryKey: ['disabled_until_value', slug],
-//       queryFn: async () => {
-//         await new Promise<void>((r) => (resolve = r))
-//         return mockFetch({ slug: `hello-${slug}` })
-//       },
-//       suspense: true,
-//     }
-//   })
+    //ref: https://tanstack.com/query/v4/docs/react/guides/dependent-queries
+    if (status === 'loading' && fetchStatus === 'idle') {
+      return <div>not enabled</div>
+    }
 
-//   const Slug = () => {
-//     const [{ data }] = useAtom(slugQueryAtom)
-//     if (!data?.response?.slug) return <div>not enabled</div>
-//     return <div>slug: {data?.response?.slug}</div>
-//   }
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   const Parent = () => {
-//     const [, setSlug] = useAtom(slugAtom)
-//     return (
-//       <div>
-//         <button
-//           onClick={() => {
-//             setSlug('world')
-//           }}>
-//           set slug
-//         </button>
-//         <Slug />
-//       </div>
-//     )
-//   }
+    if (isError) {
+      return <>errorred</>
+    }
 
-//   const { getByText, findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Parent />
-//       </Suspense>
-//     </StrictMode>
-//   )
+    return <div>slug: {data.response.slug}</div>
+  }
 
-//   await findByText('not enabled')
-//   expect(mockFetch).toHaveBeenCalledTimes(0)
+  const Parent = () => {
+    const [, setSlug] = useAtom(slugAtom)
+    return (
+      <div>
+        <button
+          onClick={() => {
+            setSlug('world')
+          }}>
+          set slug
+        </button>
+        <Slug />
+      </div>
+    )
+  }
 
-//   fireEvent.click(getByText('set slug'))
-//   await findByText('loading')
-//   resolve()
-//   await findByText('slug: hello-world')
-//   expect(mockFetch).toHaveBeenCalledTimes(1)
-// })
+  const { getByText, findByText } = render(
+    <StrictMode>
+      <Parent />
+    </StrictMode>
+  )
 
-// it('query with enabled 2', async () => {
-//   const mockFetch = jest.fn((response) => ({ response }))
-//   const enabledAtom = atom<boolean>(true)
-//   const slugAtom = atom<string | null>('first')
+  await findByText('not enabled')
+  expect(mockFetch).toHaveBeenCalledTimes(0)
 
-//   const slugQueryAtom = atomWithQuery((get: Getter) => {
-//     const slug = get(slugAtom)
-//     const enabled = get(enabledAtom)
-//     return {
-//       enabled: enabled,
-//       queryKey: ['enabled_toggle'],
-//       queryFn: async () => {
-//         await new Promise<void>((r) => setTimeout(r, 10 * 1000))
+  fireEvent.click(getByText('set slug'))
+  await findByText('loading')
+  resolve()
+  await findByText('slug: hello-world')
+  expect(mockFetch).toHaveBeenCalledTimes(1)
+})
 
-//         return mockFetch({ slug: `hello-${slug}` })
-//       },
-//     }
-//   })
+it('query with enabled 2', async () => {
+  const mockFetch = jest.fn<{ response: { slug: string } }, { slug: string }[]>(
+    (response) => ({ response })
+  )
+  const enabledAtom = atom<boolean>(true)
+  const slugAtom = atom<string | null>('first')
 
-//   const Slug = () => {
-//     const [res] = useAtom(slugQueryAtom)
+  const slugQueryAtom = atomWithQuery((get: Getter) => {
+    const slug = get(slugAtom)
+    const enabled = get(enabledAtom)
+    return {
+      enabled: enabled,
+      queryKey: ['enabled_toggle'],
+      queryFn: async () => {
+        await new Promise<void>((r) => setTimeout(r, 10 * 1000))
 
-//     if (!res.data?.response?.slug) return <div>not enabled</div>
-//     return <div>slug: {res.data?.response?.slug}</div>
-//   }
+        return mockFetch({ slug: `hello-${slug}` })
+      },
+    }
+  })
 
-//   const Parent = () => {
-//     const [, setSlug] = useAtom(slugAtom)
-//     const [, setEnabled] = useAtom(enabledAtom)
-//     return (
-//       <div>
-//         <button
-//           onClick={() => {
-//             setSlug('world')
-//           }}>
-//           set slug
-//         </button>
-//         <button
-//           onClick={() => {
-//             setEnabled(true)
-//           }}>
-//           set enabled
-//         </button>
-//         <button
-//           onClick={() => {
-//             setEnabled(false)
-//           }}>
-//           set disabled
-//         </button>
-//         <Slug />
-//       </div>
-//     )
-//   }
+  const Slug = () => {
+    const [slugQueryAtomData] = useAtom(slugQueryAtom)
+    const { data, isError, isLoading, status, fetchStatus } = slugQueryAtomData
 
-//   const { getByText, findByText } = render(
-//     <StrictMode>
-//       <Parent />
-//     </StrictMode>
-//   )
+    if (status === 'loading' && fetchStatus === 'idle') {
+      return <div>not enabled</div>
+    }
 
-//   jest.runOnlyPendingTimers()
-//   await findByText('slug: hello-first')
-//   expect(mockFetch).toHaveBeenCalledTimes(1)
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   fireEvent.click(getByText('set disabled'))
-//   fireEvent.click(getByText('set slug'))
+    if (isError) {
+      return <>errorred</>
+    }
+    return <div>slug: {data.response.slug}</div>
+  }
 
-//   await findByText('slug: hello-first')
-//   expect(mockFetch).toHaveBeenCalledTimes(1)
+  const Parent = () => {
+    const [, setSlug] = useAtom(slugAtom)
+    const [, setEnabled] = useAtom(enabledAtom)
+    return (
+      <div>
+        <button
+          onClick={() => {
+            setSlug('world')
+          }}>
+          set slug
+        </button>
+        <button
+          onClick={() => {
+            setEnabled(true)
+          }}>
+          set enabled
+        </button>
+        <button
+          onClick={() => {
+            setEnabled(false)
+          }}>
+          set disabled
+        </button>
+        <Slug />
+      </div>
+    )
+  }
 
-//   fireEvent.click(getByText('set enabled'))
-//   jest.runOnlyPendingTimers()
-//   await findByText('slug: hello-world')
-//   expect(mockFetch).toHaveBeenCalledTimes(2)
-// })
+  const { getByText, findByText } = render(
+    <StrictMode>
+      <Parent />
+    </StrictMode>
+  )
 
-// it('query with enabled (#500)', async () => {
-//   const enabledAtom = atom(true)
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery((get) => {
-//     const enabled = get(enabledAtom)
-//     return {
-//       enabled,
-//       queryKey: ['count_500_issue'],
-//       queryFn: async () => {
-//         await new Promise<void>((r) => (resolve = r))
-//         return { response: { count: 1 } }
-//       },
-//       suspense: true,
-//     }
-//   })
+  jest.runOnlyPendingTimers()
+  await findByText('slug: hello-first')
+  expect(mockFetch).toHaveBeenCalledTimes(1)
 
-//   const Counter = () => {
-//     const [value] = useAtom(countAtom)
-//     if (!value) return null
-//     const {
-//       data: {
-//         response: { count },
-//       },
-//     } = value
-//     return <div>count: {count}</div>
-//   }
+  fireEvent.click(getByText('set disabled'))
+  fireEvent.click(getByText('set slug'))
 
-//   const Parent = () => {
-//     const [showChildren, setShowChildren] = useState(true)
-//     const [, setEnabled] = useAtom(enabledAtom)
-//     return (
-//       <div>
-//         <button
-//           onClick={() => {
-//             setShowChildren((x) => !x)
-//             setEnabled((x) => !x)
-//           }}>
-//           toggle
-//         </button>
-//         {showChildren ? <Counter /> : <div>hidden</div>}
-//       </div>
-//     )
-//   }
+  await findByText('slug: hello-first')
+  expect(mockFetch).toHaveBeenCalledTimes(1)
 
-//   const { getByText, findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Parent />
-//       </Suspense>
-//     </StrictMode>
-//   )
+  fireEvent.click(getByText('set enabled'))
+  jest.runOnlyPendingTimers()
+  await findByText('slug: hello-world')
+  expect(mockFetch).toHaveBeenCalledTimes(2)
+})
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 1')
+it('query with enabled (#500)', async () => {
+  const enabledAtom = atom(true)
+  let resolve = () => {}
+  const countAtom = atomWithQuery((get) => {
+    const enabled = get(enabledAtom)
+    return {
+      enabled,
+      queryKey: ['count_500_issue'],
+      queryFn: async () => {
+        await new Promise<void>((r) => (resolve = r))
+        return { response: { count: 1 } }
+      },
+    }
+  })
 
-//   fireEvent.click(getByText('toggle'))
-//   resolve()
-//   await findByText('hidden')
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
 
-//   fireEvent.click(getByText('toggle'))
-//   resolve()
-//   await findByText('count: 1')
-// })
+    const { data, isLoading, isError } = countData
 
-// it('query with initialData test', async () => {
-//   const mockFetch = jest.fn((response) => ({ response }))
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   const countAtom = atomWithQuery(() => ({
-//     queryKey: ['initialData_count1'],
-//     queryFn: async () => {
-//       return mockFetch({ count: 10 })
-//     },
-//     initialData: { response: { count: 0 } },
-//   }))
-//   const Counter = () => {
-//     const [countData] = useAtom(countAtom)
-//     const count = countData.data?.response.count
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
+    if (isError) {
+      return <>errorred</>
+    }
 
-//   const { findByText } = render(
-//     <StrictMode>
-//       <Counter />
-//     </StrictMode>
-//   )
+    return <div>count: {data.response.count}</div>
+  }
 
-//   // NOTE: the atom never suspends
-//   await findByText('count: 0')
-//   await findByText('count: 10')
-//   expect(mockFetch).toHaveBeenCalledTimes(1)
-// })
+  const Parent = () => {
+    const [showChildren, setShowChildren] = useState(true)
+    const [, setEnabled] = useAtom(enabledAtom)
+    return (
+      <div>
+        <button
+          onClick={() => {
+            setShowChildren((x) => !x)
+            setEnabled((x) => !x)
+          }}>
+          toggle
+        </button>
+        {showChildren ? <Counter /> : <div>hidden</div>}
+      </div>
+    )
+  }
 
-// it('query dependency test', async () => {
-//   const baseCountAtom = atom(0)
-//   const incrementAtom = atom(null, (_get, set) =>
-//     set(baseCountAtom, (c) => c + 1)
-//   )
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery((get) => ({
-//     queryKey: ['count_with_dependency', get(baseCountAtom)],
-//     queryFn: async () => {
-//       await new Promise<void>((r) => (resolve = r))
-//       return { response: { count: get(baseCountAtom) } }
-//     },
-//     suspense: true,
-//   }))
+  const { getByText, findByText } = render(
+    <StrictMode>
+      <Suspense fallback="loading">
+        <Parent />
+      </Suspense>
+    </StrictMode>
+  )
 
-//   const Counter = () => {
-//     const [
-//       {
-//         data: {
-//           response: { count },
-//         },
-//       },
-//     ] = useAtom(countAtom)
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
+  await findByText('loading')
+  resolve()
+  await findByText('count: 1')
 
-//   const Controls = () => {
-//     const [, increment] = useAtom(incrementAtom)
-//     return <button onClick={increment}>increment</button>
-//   }
+  fireEvent.click(getByText('toggle'))
+  resolve()
+  await findByText('hidden')
 
-//   const { getByText, findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Counter />
-//       </Suspense>
-//       <Controls />
-//     </StrictMode>
-//   )
+  fireEvent.click(getByText('toggle'))
+  resolve()
+  await findByText('count: 1')
+})
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
+it('query with initialData test', async () => {
+  const mockFetch = jest.fn((response) => ({ response }))
+  let resolve = () => {}
 
-//   fireEvent.click(getByText('increment'))
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 1')
-// })
+  const countAtom = atomWithQuery(() => ({
+    queryKey: ['initialData_count1'],
+    queryFn: async () => {
+      await new Promise<void>((r) => (resolve = r))
+      return mockFetch({ count: 10 })
+    },
+    initialData: { response: { count: 0 } },
+  }))
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
+    const { data, isLoading, isError } = countData
+
+    if (isLoading) {
+      return <>loading</>
+    }
+
+    if (isError) {
+      return <>errorred</>
+    }
+
+    const count = data.response.count
+    return (
+      <>
+        <div>count: {count}</div>
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <Counter />
+    </StrictMode>
+  )
+
+  // NOTE: the atom is never loading
+  await expect(() => findByText('loading')).rejects.toThrow()
+  await findByText('count: 0')
+  resolve()
+  await findByText('count: 10')
+  expect(mockFetch).toHaveBeenCalledTimes(1)
+})
+
+it('query dependency test', async () => {
+  const baseCountAtom = atom(0)
+  const incrementAtom = atom(null, (_get, set) =>
+    set(baseCountAtom, (c) => c + 1)
+  )
+  let resolve = () => {}
+  const countAtom = atomWithQuery((get) => ({
+    queryKey: ['count_with_dependency', get(baseCountAtom)],
+    queryFn: async () => {
+      await new Promise<void>((r) => (resolve = r))
+      return { response: { count: get(baseCountAtom) } }
+    },
+  }))
+
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
+    const { data, isLoading, isError } = countData
+
+    if (isLoading) {
+      return <>loading</>
+    }
+
+    if (isError) {
+      return <>errorred</>
+    }
+
+    return (
+      <>
+        <div>count: {data.response.count}</div>
+      </>
+    )
+  }
+
+  const Controls = () => {
+    const [, increment] = useAtom(incrementAtom)
+    return <button onClick={increment}>increment</button>
+  }
+
+  const { getByText, findByText } = render(
+    <StrictMode>
+      <Counter />
+      <Controls />
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  resolve()
+  await findByText('count: 0')
+
+  fireEvent.click(getByText('increment'))
+  await findByText('loading')
+  resolve()
+  await findByText('count: 1')
+})
+
+it('query expected QueryCache test', async () => {
+  const queryClient = new QueryClient()
+  let resolve = () => {}
+  const countAtom = atomWithQuery(
+    () => ({
+      queryKey: ['count6'],
+      queryFn: async () => {
+        await new Promise<void>((r) => (resolve = r))
+        return { response: { count: 0 } }
+      },
+    }),
+    () => queryClient
+  )
+  const Counter = () => {
+    const [countData] = useAtom(countAtom)
+
+    const { data, isLoading, isError } = countData
+
+    if (isLoading) {
+      return <>loading</>
+    }
+
+    if (isError) {
+      return <>errorred</>
+    }
+
+    return (
+      <>
+        <div>count: {data.response.count}</div>
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <Suspense fallback="loading">
+        <Counter />
+      </Suspense>
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  resolve()
+  await findByText('count: 0')
+  expect(queryClient.getQueryCache().getAll().length).toBe(1)
+})
 
 describe('error handling', () => {
   class ErrorBoundary extends Component<
@@ -554,18 +564,20 @@ describe('error handling', () => {
     static getDerivedStateFromError() {
       return { hasError: true }
     }
+
     render() {
-      console.log('error is caught?')
       return this.state.hasError ? (
         <div>
           {this.props.message || 'errored'}
-          <button
-            onClick={() => {
-              this.props.retry?.()
-              this.setState({ hasError: false })
-            }}>
-            retry
-          </button>
+          {this.props.retry && (
+            <button
+              onClick={() => {
+                this.props.retry?.()
+                this.setState({ hasError: false })
+              }}>
+              retry
+            </button>
+          )}
         </div>
       ) : (
         this.props.children
@@ -573,53 +585,50 @@ describe('error handling', () => {
     }
   }
 
-  // it('can catch error in error boundary', async () => {
-  //   let resolve = () => {}
-  //   const countAtom = atomWithQuery(() => ({
-  //     queryKey: ['error test', 'count1'],
-  //     retry: false,
-  //     queryFn: async (): Promise<{ response: { count: number } }> => {
-  //       await new Promise<void>((r) => (resolve = r))
-  //       throw new Error('fetch error')
-  //     },
-  //     suspense: true,
-  //   }))
-  //   const Counter = () => {
-  //     const [
-  //       {
-  //         data: {
-  //           response: { count },
-  //         },
-  //       },
-  //     ] = useAtom(countAtom)
-  //     return (
-  //       <>
-  //         <div>count: {count}</div>
-  //       </>
-  //     )
-  //   }
+  it('can catch error in error boundary', async () => {
+    let resolve = () => {}
+    const countAtom = atomWithQuery(() => ({
+      queryKey: ['catch'],
+      retry: false,
+      queryFn: async (): Promise<{ response: { count: number } }> => {
+        await new Promise<void>((r) => (resolve = r))
+        throw new Error('fetch error')
+      },
+      useErrorBoundary: true,
+    }))
+    const Counter = () => {
+      const [countData] = useAtom(countAtom)
 
-  //   const { findByText } = render(
-  //     <StrictMode>
-  //       <ErrorBoundary>
-  //         <Suspense fallback="loading">
-  //           <Counter />
-  //         </Suspense>
-  //       </ErrorBoundary>
-  //     </StrictMode>
-  //   )
+      if ('data' in countData) {
+        if (countData.isLoading) {
+          return <>loading</>
+        }
 
-  //   await findByText('loading')
-  //   resolve()
-  //   await findByText('errored')
-  // })
+        return <div>count: {countData.data?.response.count}</div>
+      }
+
+      return null
+    }
+
+    const { findByText } = render(
+      <StrictMode>
+        <ErrorBoundary>
+          <Counter />
+        </ErrorBoundary>
+      </StrictMode>
+    )
+
+    await findByText('loading')
+    resolve()
+    await findByText('errored')
+  })
 
   it('can recover from error', async () => {
     let count = -1
     let willThrowError = false
     let resolve = () => {}
     const countAtom = atomWithQuery(() => ({
-      queryKey: ['error test', 'count2'],
+      queryKey: ['recover'],
       retry: false,
       queryFn: async () => {
         willThrowError = !willThrowError
@@ -630,154 +639,110 @@ describe('error handling', () => {
         }
         return { response: { count } }
       },
-      suspense: true,
+      useErrorBoundary: true,
     }))
     const Counter = () => {
-      const [
-        {
-          data: {
-            response: { count },
-          },
-        },
-      ] = useAtom(countAtom)
+      const [countData] = useAtom(countAtom)
+
+      const { data, isLoading, refetch } = countData
+
+      if (isLoading) {
+        return <>loading</>
+      }
+
       return (
         <>
-          <div>count: {count}</div>
-          <button>refetch</button>
+          <div>count: {data?.response.count}</div>
+          <button onClick={() => refetch()}>refetch</button>
         </>
       )
     }
 
     const App = () => {
-      const [data] = useAtom(countAtom)
-      if (data instanceof Promise) {
-        console.log('it is a promise')
-      }
-      const refetch = data.refetch
       return (
-        <ErrorBoundary retry={refetch}>
-          <Suspense fallback="loading">
-            <Counter />
-          </Suspense>
-        </ErrorBoundary>
+        <QueryErrorResetBoundary>
+          {(reset) => (
+            <ErrorBoundary retry={reset}>
+              <Counter />
+            </ErrorBoundary>
+          )}
+        </QueryErrorResetBoundary>
       )
     }
 
-    const { findByText, getByText } = render(
-      <ErrorBoundary>
-        <Suspense fallback="loading">
-          <App />
-        </Suspense>
-      </ErrorBoundary>
-    )
+    const { findByText, getByText } = render(<App />)
+
     await findByText('loading')
     resolve()
     await findByText('errored')
 
     fireEvent.click(getByText('retry'))
-    // await findByText('loading') //TODO: implement actual reset
+    await findByText('loading')
     resolve()
     await findByText('count: 1')
 
     fireEvent.click(getByText('refetch'))
-    // await findByText('loading') //TODO: implement actual reset
     resolve()
     await findByText('errored')
 
     fireEvent.click(getByText('retry'))
-    // await findByText('loading') //TODO: implement actual reset
+    await findByText('loading')
     resolve()
     await findByText('count: 3')
   })
 })
 
-// it('query expected QueryCache test', async () => {
-//   const queryClient = new QueryClient()
-//   let resolve = () => {}
-//   const countAtom = atomWithQuery(
-//     () => ({
-//       queryKey: ['count6'],
-//       queryFn: async () => {
-//         await new Promise<void>((r) => (resolve = r))
-//         return { response: { count: 0 } }
-//       },
-//       suspense: true,
-//     }),
-//     () => queryClient
-//   )
-//   const Counter = () => {
-//     const [
-//       {
-//         data: {
-//           response: { count },
-//         },
-//       },
-//     ] = useAtom(countAtom)
+// // Test for bug described here:
+// // https://github.com/jotaijs/jotai-tanstack-query/issues/34
+// Note: If error handling tests run after this test, they are failing. Not sure why.
+it('renews the result when the query changes and a non stale cache is available', async () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },
+  })
+  queryClient.setQueryData([2], 2)
 
-//     return (
-//       <>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
+  const currentCountAtom = atom(1)
 
-//   const { findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback="loading">
-//         <Counter />
-//       </Suspense>
-//     </StrictMode>
-//   )
+  const countAtom = atomWithQuery(
+    (get) => {
+      const currentCount = get(currentCountAtom)
+      return {
+        queryKey: [currentCount],
+        queryFn: () => currentCount,
+      }
+    },
+    () => queryClient
+  )
 
-//   await findByText('loading')
-//   resolve()
-//   await findByText('count: 0')
-//   expect(queryClient.getQueryCache().getAll().length).toBe(1)
-// })
+  const Counter = () => {
+    const setCurrentCount = useSetAtom(currentCountAtom)
+    const [countData] = useAtom(countAtom)
+    const { data, isLoading, isError } = countData
 
-// Test for bug described here:
-// https://github.com/jotaijs/jotai-tanstack-query/issues/34
-// it('renews the result when the query changes and a non stale cache is available', async () => {
-//   const queryClient = new QueryClient({
-//     defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },
-//   })
-//   queryClient.setQueryData([2], 2)
+    if (isLoading) {
+      return <>loading</>
+    }
 
-//   const currentCountAtom = atom(1)
+    if (isError) {
+      return <>errorred</>
+    }
 
-//   const countAtom = atomWithQuery(
-//     (get) => {
-//       const currentCount = get(currentCountAtom)
-//       return {
-//         queryKey: [currentCount],
-//         queryFn: () => currentCount,
-//         suspense: true,
-//       }
-//     },
-//     () => queryClient
-//   )
+    return (
+      <>
+        <button onClick={() => setCurrentCount(2)}>Set count to 2</button>
+        <div>count: {data}</div>
+      </>
+    )
+  }
 
-//   const Counter = () => {
-//     const setCurrentCount = useSetAtom(currentCountAtom)
-//     const [{ data: count }] = useAtom(countAtom)
-//     return (
-//       <>
-//         <button onClick={() => setCurrentCount(2)}>Set count to 2</button>
-//         <div>count: {count}</div>
-//       </>
-//     )
-//   }
-
-//   const { findByText } = render(
-//     <StrictMode>
-//       <Suspense fallback={'loading'}>
-//         <Counter />
-//       </Suspense>
-//     </StrictMode>
-//   )
-//   await findByText('loading')
-//   await findByText('count: 1')
-//   fireEvent.click(await findByText('Set count to 2'))
-//   await expect(() => findByText('loading')).rejects.toThrow()
-//   await findByText('count: 2')
-// })
+  const { findByText } = render(
+    <StrictMode>
+      <Counter />
+    </StrictMode>
+  )
+  await findByText('loading')
+  await findByText('count: 1')
+  fireEvent.click(await findByText('Set count to 2'))
+  await expect(() => findByText('loading')).rejects.toThrow()
+  await findByText('count: 2')
+})
