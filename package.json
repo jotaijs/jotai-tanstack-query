@@ -88,9 +88,7 @@
   },
   "peerDependencies": {
     "@tanstack/query-core": "*",
-    "jotai": ">=1.11.0"
-  },
-  "dependencies": {
+    "jotai": ">=1.11.0",
     "wonka": "^6.3.4"
   }
 }
