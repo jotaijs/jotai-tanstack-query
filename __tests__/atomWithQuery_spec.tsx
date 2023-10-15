@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {
   Component,
   ReactNode,
@@ -16,7 +15,6 @@ beforeEach(() => {
 afterEach(() => {
   jest.runAllTimers()
   jest.useRealTimers()
-  jest.clearAllMocks()
 })
 
 it('query basic test', async () => {
