@@ -1,7 +1,7 @@
 {
   "name": "jotai-tanstack-query",
   "description": "👻🌺",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "author": "Daishi Kato",
   "repository": {
     "type": "git",
@@ -36,7 +36,8 @@
     "examples:02_refetch": "DIR=02_refetch EXT=tsx webpack serve",
     "examples:03_infinite": "DIR=03_infinite EXT=tsx webpack serve",
     "examples:04_mutation": "DIR=04_mutation EXT=tsx webpack serve",
-    "examples:05_async": "DIR=05_async EXT=tsx webpack serve"
+    "examples:05_async": "DIR=05_async EXT=tsx webpack serve",
+    "examples:06_cache": "DIR=06_cache EXT=tsx webpack serve"
   },
   "jest": {
     "testEnvironment": "jsdom",

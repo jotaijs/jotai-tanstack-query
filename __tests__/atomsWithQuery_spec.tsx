@@ -809,3 +809,76 @@ it('renews the result when the query changes and a non stale cache is available'
   fireEvent.click(await findByText('Set count to 2'))
   await findByText('count: 2')
 })
+
+it(`ensure that setQueryData for an inactive query updates its atom state`, async () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnMount: false,
+      },
+    },
+  })
+
+  const extraKey = 'uniqueKey'
+  const pageAtom = atom(1)
+
+  const queryFn = jest.fn(() => {
+    return Promise.resolve('John Doe')
+  })
+
+  const [userAtom] = atomsWithQuery(
+    () => {
+      return {
+        queryKey: [extraKey],
+        queryFn: async () => {
+          const name = await queryFn()
+          return { response: { name } }
+        },
+      }
+    },
+    () => queryClient
+  )
+
+  const User = () => {
+    const [
+      {
+        response: { name },
+      },
+    ] = useAtom(userAtom)
+
+    return <>Name: {name}</>
+  }
+
+  const Controls = () => {
+    const [, setPage] = useAtom(pageAtom)
+    return (
+      <>
+        <button onClick={() => setPage(1)}>Set page 1</button>
+        <button onClick={() => setPage(2)}>Set page 2</button>
+      </>
+    )
+  }
+
+  const App = () => {
+    const [page] = useAtom(pageAtom)
+    return (
+      <>
+        <Suspense fallback="loading">{page === 1 && <User />}</Suspense>
+        <Controls />
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  await findByText('Name: John Doe')
+  fireEvent.click(await findByText('Set page 2'))
+  queryClient.setQueryData([extraKey], { response: { name: 'Alex Smith' } })
+  fireEvent.click(await findByText('Set page 1'))
+  await findByText('Name: Alex Smith')
+})

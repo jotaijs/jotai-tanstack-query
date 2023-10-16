@@ -10,6 +10,7 @@ export const createAtoms = <
     isError: boolean
     data: any
     error: any
+    dataUpdatedAt?: any
   },
   Observer extends {
     setOptions(options: Options): void
@@ -66,6 +67,7 @@ export const createAtoms = <
   }
 
   const baseStatusAtom = atom((get) => {
+    const options = getOptions(get) // re-create observable when options change
     const observer = get(observerAtom)
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
@@ -78,7 +80,17 @@ export const createAtoms = <
           }
         }
         const unsubscribe = observer.subscribe(callback)
-        callback(observer.getCurrentResult())
+        const currentResult = observer.getCurrentResult()
+        const optimisticResult = (observer as any).getOptimisticResult?.(
+          options
+        )
+        const freshData =
+          !currentResult?.dataUpdatedAt ||
+          !optimisticResult?.dataUpdatedAt ||
+          currentResult.dataUpdatedAt >= optimisticResult.dataUpdatedAt
+            ? currentResult
+            : optimisticResult
+        callback(freshData)
         return { unsubscribe }
       },
     }
@@ -115,7 +127,7 @@ export const createAtoms = <
   )
 
   const baseDataAtom = atom((get) => {
-    getOptions(get) // re-create observable when options change
+    const options = getOptions(get) // re-create observable when options change
     const observer = get(observerAtom)
     const observable = {
       subscribe: (arg: { next: (result: Result) => void }) => {
@@ -133,7 +145,18 @@ export const createAtoms = <
           }
         }
         const unsubscribe = observer.subscribe(callback)
-        callback(observer.getCurrentResult())
+        const currentResult = observer.getCurrentResult()
+        const optimisticResult = (observer as any).getOptimisticResult?.(
+          options
+        )
+        const freshData =
+          !currentResult?.dataUpdatedAt ||
+          !optimisticResult?.dataUpdatedAt ||
+          currentResult.dataUpdatedAt >= optimisticResult.dataUpdatedAt
+            ? currentResult
+            : optimisticResult
+        callback(freshData)
+
         return { unsubscribe }
       },
     }
