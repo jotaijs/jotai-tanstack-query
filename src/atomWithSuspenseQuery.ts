@@ -1,13 +1,13 @@
 import {
+  type DefinedQueryObserverResult,
   QueryClient,
   type QueryKey,
   QueryObserver,
   type QueryObserverOptions,
   type QueryObserverResult,
-  type QueryObserverSuccessResult,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
-import { filter, fromPromise, make, pipe, toObservable, toPromise } from 'wonka'
+import { make, pipe, toObservable } from 'wonka'
 import { isResetAtom } from './QueryAtomErrorResetBoundary'
 import { queryClientAtom } from './queryClientAtom'
 import { shouldSuspend } from './utils'
@@ -30,7 +30,10 @@ export const atomWithSuspenseQuery = <
     TQueryKey
   > & { initialData?: TInitialData },
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-) => {
+): Atom<
+  | DefinedQueryObserverResult<TData, TError>
+  | Promise<DefinedQueryObserverResult<TData, TError>>
+> => {
   const IN_RENDER = Symbol()
 
   const queryClientAtom = atom(getQueryClient)
@@ -54,7 +57,6 @@ export const atomWithSuspenseQuery = <
 
   const observerAtom = atom((get) => {
     const isReset = get(isResetAtom)
-
     const options = get(optionsAtom)
     const client = get(queryClientAtom)
     const observerCache = get(observerCacheAtom)
@@ -64,7 +66,7 @@ export const atomWithSuspenseQuery = <
     if (isReset) {
       if (observer) {
         observerCache.delete(client)
-        observer.remove()
+        observer.destroy()
       }
       const newObserver = new QueryObserver(client, options)
       observerCache.set(client, newObserver)
@@ -101,11 +103,8 @@ export const atomWithSuspenseQuery = <
       const unsubscribe = observer.subscribe(callback)
       return () => unsubscribe()
     })
-    return pipe(
-      source,
-      filter((state) => !state.isFetching),
-      toObservable
-    )
+
+    return pipe(source, toObservable)
   })
 
   const dataAtom = atom((get) => {
@@ -119,7 +118,7 @@ export const atomWithSuspenseQuery = <
       const { unsubscribe } = observable.subscribe((state) => {
         set(state)
       })
-      return () => unsubscribe()
+      return unsubscribe
     }
 
     return resultAtom
@@ -128,13 +127,15 @@ export const atomWithSuspenseQuery = <
   return atom((get) => {
     const options = get(optionsAtom)
     const observer = get(observerAtom)
+
     const optimisticResult = observer.getOptimisticResult(options)
-    console.log({ defaultedOptions: options })
-    const suspend = shouldSuspend(options, optimisticResult, false)
-    console.log({ suspend })
+
+    const suspend = options.suspense && optimisticResult.isPending
 
     if (suspend) {
-      return observer.fetchOptimistic(options)
+      return observer.fetchOptimistic(options).catch((err) => {
+        throw err
+      }) as Promise<DefinedQueryObserverResult<TData, TError>>
     }
 
     const shouldThrowError =
@@ -147,6 +148,6 @@ export const atomWithSuspenseQuery = <
     const resultAtom = get(dataAtom)
     const result = get(resultAtom)
 
-    return result
+    return result as DefinedQueryObserverResult<TData, TError>
   })
 }

@@ -3,7 +3,7 @@ import type {
   Query,
   QueryKey,
   QueryObserverResult,
-  UseErrorBoundary,
+  ThrowOnError,
 } from '@tanstack/query-core'
 import { QueryErrorResetBoundaryValue } from './QueryAtomErrorResetBoundary'
 
@@ -18,7 +18,7 @@ export const shouldSuspend = (
 export const willFetch = (
   result: QueryObserverResult<any, any>,
   isRestoring: boolean
-) => result.isLoading && !isRestoring
+) => result.isPending && !isRestoring
 
 export const getHasError = <
   TData,
@@ -29,26 +29,24 @@ export const getHasError = <
 >({
   result,
   errorResetBoundary,
-  useErrorBoundary,
+  throwOnError,
   query,
 }: {
   result: QueryObserverResult<TData, TError>
-  errorResetBoundary: QueryErrorResetBoundaryValue
-  useErrorBoundary: UseErrorBoundary<
-    TQueryFnData,
-    TError,
-    TQueryData,
-    TQueryKey
-  >
+  errorResetBoundary?: QueryErrorResetBoundaryValue
+  throwOnError:
+    | ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
+    | undefined
   query: Query<TQueryFnData, TError, TQueryData, TQueryKey>
 }) => {
   return (
     result.isError &&
-    !errorResetBoundary.isReset() &&
+    !errorResetBoundary?.isReset() &&
     !result.isFetching &&
-    shouldThrowError(useErrorBoundary, [result.error, query])
+    shouldThrowError(throwOnError, [result.error, query])
   )
 }
+
 export function shouldThrowError<T extends (...args: any[]) => boolean>(
   _useErrorBoundary: boolean | T | undefined,
   params: Parameters<T>

@@ -1,16 +1,14 @@
+import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
 import type {
-  QueryClient,
+  InfiniteQueryObserverOptions,
+  InfiniteQueryObserverResult,
   QueryKey,
-  QueryObserverOptions,
-  QueryObserverResult,
 } from '@tanstack/query-core'
-import { QueryObserver } from '@tanstack/query-core'
-import { Atom, Getter, atom } from 'jotai'
+import { type Getter, atom } from 'jotai/vanilla'
 import { make, pipe, toObservable } from 'wonka'
-import { isResetAtom } from './QueryAtomErrorResetBoundary'
 import { queryClientAtom } from './queryClientAtom'
-
-export function atomWithQuery<
+import { getHasError } from './utils'
+export function atomWithInfiniteQuery<
   TQueryFnData = unknown,
   TError = unknown,
   TData = TQueryFnData,
@@ -19,26 +17,33 @@ export function atomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => Omit<
-    QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-    'suspense'
+  ) => InfiniteQueryObserverOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): Atom<QueryObserverResult<TData, TError>> {
+) {
   const IN_RENDER = Symbol()
 
   const queryClientAtom = atom(getQueryClient)
   const optionsAtom = atom((get) => {
-    const client = get(queryClientAtom)
-    const options = getOptions(get)
-    return client.defaultQueryOptions(options)
+    return getOptions(get)
   })
 
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
         QueryClient,
-        QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+        InfiniteQueryObserver<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryData,
+          TQueryKey
+        >
       >()
   )
 
@@ -57,7 +62,7 @@ export function atomWithQuery<
       return observer
     }
 
-    const newObserver = new QueryObserver(client, options)
+    const newObserver = new InfiniteQueryObserver(client, options)
     observerCache.set(client, newObserver)
 
     return newObserver
@@ -65,20 +70,24 @@ export function atomWithQuery<
 
   const observableAtom = atom((get) => {
     const observer = get(observerAtom)
-    const source = make<QueryObserverResult<TData, TError>>(({ next }) => {
-      const callback = (result: QueryObserverResult<TData, TError>) => {
-        const notifyResult = () => next(result)
+    const source = make<InfiniteQueryObserverResult<TData, TError>>(
+      ({ next }) => {
+        const callback = (
+          result: InfiniteQueryObserverResult<TData, TError>
+        ) => {
+          const notifyResult = () => next(result)
 
-        if ((observer as any)[IN_RENDER]) {
-          Promise.resolve().then(notifyResult)
-        } else {
-          notifyResult()
+          if ((observer as any)[IN_RENDER]) {
+            Promise.resolve().then(notifyResult)
+          } else {
+            notifyResult()
+          }
         }
-      }
 
-      const unsubscribe = observer.subscribe(callback)
-      return () => unsubscribe()
-    })
+        const unsubscribe = observer.subscribe(callback)
+        return () => unsubscribe()
+      }
+    )
     return pipe(source, toObservable)
   })
 
@@ -100,10 +109,18 @@ export function atomWithQuery<
   })
 
   return atom((get) => {
+    const options = get(optionsAtom)
+    const observer = get(observerAtom)
     const resultAtom = get(dataAtom)
     const result = get(resultAtom)
 
-    if (result.isError && !result.isFetching) {
+    if (
+      getHasError({
+        query: observer.getCurrentQuery(),
+        result,
+        throwOnError: options.throwOnError,
+      })
+    ) {
       throw result.error
     }
 

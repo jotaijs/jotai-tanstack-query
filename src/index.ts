@@ -1,8 +1,7 @@
 export { queryClientAtom } from './queryClientAtom'
-export { atomsWithQuery } from './atomsWithQuery'
-export { atomsWithInfiniteQuery } from './atomsWithInfiniteQuery'
-export { atomsWithMutation } from './atomsWithMutation'
-export { atomsWithQueryAsync } from './atomsWithQueryAsync'
 export { atomWithQuery } from './atomWithQuery'
 export { atomWithSuspenseQuery } from './atomWithSuspenseQuery'
+export { atomWithInfiniteQuery } from './atomWithInfiniteQuery'
+export { atomWithMutation } from './atomWithMutation'
+
 export * from './QueryAtomErrorResetBoundary'

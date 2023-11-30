@@ -1,44 +1,39 @@
-import type {
+import {
+  MutationObserver,
+  type MutationObserverOptions,
+  type MutationObserverResult,
   QueryClient,
-  QueryKey,
-  QueryObserverOptions,
-  QueryObserverResult,
 } from '@tanstack/query-core'
-import { QueryObserver } from '@tanstack/query-core'
-import { Atom, Getter, atom } from 'jotai'
+import { Getter, atom } from 'jotai'
 import { make, pipe, toObservable } from 'wonka'
-import { isResetAtom } from './QueryAtomErrorResetBoundary'
 import { queryClientAtom } from './queryClientAtom'
+import { shouldThrowError } from './utils'
 
-export function atomWithQuery<
-  TQueryFnData = unknown,
+export function atomWithMutation<
+  TData = unknown,
+  TVariables = void,
   TError = unknown,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
+  TContext = unknown,
 >(
   getOptions: (
     get: Getter
-  ) => Omit<
-    QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-    'suspense'
-  >,
+  ) => MutationObserverOptions<TData, TError, TVariables, TContext>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): Atom<QueryObserverResult<TData, TError>> {
+) {
   const IN_RENDER = Symbol()
-
   const queryClientAtom = atom(getQueryClient)
+
   const optionsAtom = atom((get) => {
     const client = get(queryClientAtom)
     const options = getOptions(get)
-    return client.defaultQueryOptions(options)
+    return client.defaultMutationOptions(options)
   })
 
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
         QueryClient,
-        QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+        MutationObserver<TData, TError, TVariables, TContext>
       >()
   )
 
@@ -57,7 +52,7 @@ export function atomWithQuery<
       return observer
     }
 
-    const newObserver = new QueryObserver(client, options)
+    const newObserver = new MutationObserver(client, options)
     observerCache.set(client, newObserver)
 
     return newObserver
@@ -65,8 +60,12 @@ export function atomWithQuery<
 
   const observableAtom = atom((get) => {
     const observer = get(observerAtom)
-    const source = make<QueryObserverResult<TData, TError>>(({ next }) => {
-      const callback = (result: QueryObserverResult<TData, TError>) => {
+    const source = make<
+      MutationObserverResult<TData, TError, TVariables, TContext>
+    >(({ next }) => {
+      const callback = (
+        result: MutationObserverResult<TData, TError, TVariables, TContext>
+      ) => {
         const notifyResult = () => next(result)
 
         if ((observer as any)[IN_RENDER]) {
@@ -93,20 +92,44 @@ export function atomWithQuery<
       const { unsubscribe } = observable.subscribe((state) => {
         set(state)
       })
-      return () => unsubscribe()
+      return () => {
+        observer.reset()
+        unsubscribe()
+      }
     }
 
     return resultAtom
   })
 
-  return atom((get) => {
-    const resultAtom = get(dataAtom)
-    const result = get(resultAtom)
+  const mutateAtom = atom((get) => {
+    const observer = get(observerAtom)
+    const mutate = (
+      variables: TVariables,
+      options?: MutationObserverOptions<TData, TError, TVariables, TContext>
+    ) => {
+      observer.mutate(variables, options).catch(noop)
+    }
 
-    if (result.isError && !result.isFetching) {
+    return mutate
+  })
+
+  return atom((get) => {
+    const observer = get(observerAtom)
+    const resultAtom = get(dataAtom)
+
+    const result = get(resultAtom)
+    const mutate = get(mutateAtom)
+
+    if (
+      result.isError &&
+      shouldThrowError(observer.options.throwOnError, [result.error])
+    ) {
       throw result.error
     }
 
-    return result
+    return { ...result, mutate, mutateAsync: result.mutate }
   })
 }
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+function noop() {}

@@ -28,9 +28,9 @@ it('query basic test', async () => {
   }))
   const Counter = () => {
     const [countData] = useAtom(countAtom)
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -75,9 +75,9 @@ it('query refetch', async () => {
     },
   }))
   const Counter = () => {
-    const [{ data, isLoading, isError, refetch }] = useAtom(countAtom)
+    const [{ data, isPending, isError, refetch }] = useAtom(countAtom)
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -129,9 +129,9 @@ it('query no-loading with keepPreviousData', async () => {
   }))
   const Counter = () => {
     const [countData] = useAtom(countAtom)
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -195,14 +195,14 @@ it('query with enabled', async () => {
   const Slug = () => {
     const [slugQueryData] = useAtom(slugQueryAtom)
 
-    const { data, isLoading, isError, status, fetchStatus } = slugQueryData
+    const { data, isPending, isError, status, fetchStatus } = slugQueryData
 
     //ref: https://tanstack.com/query/v4/docs/react/guides/dependent-queries
-    if (status === 'loading' && fetchStatus === 'idle') {
+    if (status === 'pending' && fetchStatus === 'idle') {
       return <div>not enabled</div>
     }
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -267,13 +267,13 @@ it('query with enabled 2', async () => {
 
   const Slug = () => {
     const [slugQueryAtomData] = useAtom(slugQueryAtom)
-    const { data, isError, isLoading, status, fetchStatus } = slugQueryAtomData
+    const { data, isError, isPending, status, fetchStatus } = slugQueryAtomData
 
-    if (status === 'loading' && fetchStatus === 'idle') {
+    if (status === 'pending' && fetchStatus === 'idle') {
       return <div>not enabled</div>
     }
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -351,9 +351,9 @@ it('query with enabled (#500)', async () => {
   const Counter = () => {
     const [countData] = useAtom(countAtom)
 
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -416,9 +416,9 @@ it('query with initialData test', async () => {
   }))
   const Counter = () => {
     const [countData] = useAtom(countAtom)
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -464,9 +464,9 @@ it('query dependency test', async () => {
 
   const Counter = () => {
     const [countData] = useAtom(countAtom)
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -519,9 +519,9 @@ it('query expected QueryCache test', async () => {
   const Counter = () => {
     const [countData] = useAtom(countAtom)
 
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
@@ -538,9 +538,7 @@ it('query expected QueryCache test', async () => {
 
   const { findByText } = render(
     <StrictMode>
-      <Suspense fallback="loading">
-        <Counter />
-      </Suspense>
+      <Counter />
     </StrictMode>
   )
 
@@ -598,7 +596,7 @@ describe('error handling', () => {
       const [countData] = useAtom(countAtom)
 
       if ('data' in countData) {
-        if (countData.isLoading) {
+        if (countData.isPending) {
           return <>loading</>
         }
 
@@ -642,9 +640,9 @@ describe('error handling', () => {
     const Counter = () => {
       const [countData] = useAtom(countAtom)
 
-      const { data, isLoading, refetch } = countData
+      const { data, isPending, refetch } = countData
 
-      if (isLoading) {
+      if (isPending) {
         return <>loading</>
       }
 
@@ -715,9 +713,9 @@ it('renews the result when the query changes and a non stale cache is available'
   const Counter = () => {
     const setCurrentCount = useSetAtom(currentCountAtom)
     const [countData] = useAtom(countAtom)
-    const { data, isLoading, isError } = countData
+    const { data, isPending, isError } = countData
 
-    if (isLoading) {
+    if (isPending) {
       return <>loading</>
     }
 
