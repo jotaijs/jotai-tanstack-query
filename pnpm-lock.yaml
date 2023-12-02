@@ -6,8 +6,8 @@ settings:
 
 devDependencies:
   '@tanstack/query-core':
-    specifier: ^5.4.3
-    version: 5.4.3
+    specifier: ^5.12.1
+    version: 5.12.1
   '@testing-library/react':
     specifier: ^14.0.0
     version: 14.0.0(react-dom@18.2.0)(react@18.2.0)
@@ -1888,8 +1888,8 @@ packages:
       string.prototype.matchall: 4.0.9
     dev: true
 
-  /@tanstack/query-core@5.4.3:
-    resolution: {integrity: sha512-fnI9ORjcuLGm1sNrKatKIosRQUpuqcD4SV7RqRSVmj8JSicX2aoMyKryHEBpVQvf6N4PaBVgBxQomjsbsGPssQ==}
+  /@tanstack/query-core@5.12.1:
+    resolution: {integrity: sha512-WbZztNmKq0t6QjdNmHzezbi/uifYo9j6e2GLJkodsYaYUlzMbAp91RDyeHkIZrm7EfO4wa6Sm5sxJZm5SPlh6w==}
     dev: true
 
   /@testing-library/dom@9.3.1:

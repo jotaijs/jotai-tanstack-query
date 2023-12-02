@@ -1,29 +1,27 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
 import type {
+  DefaultError,
+  InfiniteData,
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
   QueryKey,
+  WithRequired,
 } from '@tanstack/query-core'
 import { type Getter, atom } from 'jotai/vanilla'
 import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
 import { getHasError } from './utils'
+
 export function atomWithInfiniteQuery<
-  TQueryFnData = unknown,
-  TError = unknown,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
   TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
 >(
   getOptions: (
     get: Getter
-  ) => InfiniteQueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
-  >,
+  ) => InfiniteQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   const IN_RENDER = Symbol()
@@ -41,8 +39,9 @@ export function atomWithInfiniteQuery<
           TQueryFnData,
           TError,
           TData,
-          TQueryData,
-          TQueryKey
+          TQueryFnData,
+          TQueryKey,
+          TPageParam
         >
       >()
   )
@@ -127,3 +126,24 @@ export function atomWithInfiniteQuery<
     return result
   })
 }
+
+interface InfiniteQueryOptions<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+> extends WithRequired<
+    Omit<
+      InfiniteQueryObserverOptions<
+        TQueryFnData,
+        TError,
+        TData,
+        TQueryFnData,
+        TQueryKey,
+        TPageParam
+      >,
+      'suspense'
+    >,
+    'queryKey'
+  > {}
