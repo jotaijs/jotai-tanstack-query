@@ -8,7 +8,6 @@ it('atomWithMutation should be refreshed on unmount (#2060)', async () => {
   const mutateAtom = atomWithMutation<number, number>(() => ({
     mutationKey: ['test-atom'],
     mutationFn: async (a) => {
-      console.log('mutation triggered')
       await new Promise<void>((r) => {
         resolve = r
       })

@@ -631,7 +631,6 @@ it('renews the result when the query changes and a non stale cache is available'
   const Counter = () => {
     const setCurrentCount = useSetAtom(currentCountAtom)
     const [countData] = useAtom(countAtom)
-    console.log({ countData })
 
     const { data, isPending, isError } = countData
 
