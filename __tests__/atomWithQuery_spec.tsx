@@ -8,7 +8,8 @@ import React, {
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
 import { Getter, atom, useAtom, useSetAtom } from 'jotai'
-import { QueryErrorResetBoundary, atomWithQuery } from '../src'
+import { unwrap } from 'jotai/utils'
+import { atomWithQuery } from '../src'
 beforeEach(() => {
   jest.useFakeTimers()
 })
@@ -54,6 +55,54 @@ it('query basic test', async () => {
   await findByText('loading')
   resolve()
   await findByText('count: 0')
+})
+
+it('async query basic test', async () => {
+  const fn = jest.fn(() => Promise.resolve(2))
+  const queryFn = jest.fn((id) => {
+    return Promise.resolve({ response: { id } })
+  })
+
+  const userIdAtom = atom(async () => {
+    return await fn()
+  })
+
+  const userAtom = atomWithQuery((get) => {
+    const userId = get(unwrap(userIdAtom))
+
+    return {
+      queryKey: ['userId', userId],
+      queryFn: async ({ queryKey: [, id] }) => {
+        const res = await queryFn(id)
+        return res
+      },
+      enabled: !!userId,
+    }
+  })
+  const User = () => {
+    const [userData] = useAtom(userAtom)
+    const { data, isPending, isError } = userData
+
+    if (isPending) return <>loading</>
+    if (isError) return <>errorred</>
+
+    return (
+      <>
+        <div>id: {data.response.id}</div>
+      </>
+    )
+  }
+  const { findByText } = render(
+    <StrictMode>
+      <Suspense fallback="loading">
+        <User />
+      </Suspense>
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  await findByText('id: 2')
+  expect(queryFn).toHaveBeenCalledTimes(1)
 })
 
 it('query refetch', async () => {
@@ -109,69 +158,6 @@ it('query refetch', async () => {
   resolve()
   await findByText('count: 1')
   expect(mockFetch).toBeCalledTimes(2)
-})
-
-it('query no-loading with keepPreviousData', async () => {
-  const dataAtom = atom(0)
-  const mockFetch = jest.fn<
-    { response: { count: number } },
-    { count: number }[]
-  >((response) => ({ response }))
-  let resolve = () => {}
-  const countAtom = atomWithQuery((get) => ({
-    queryKey: ['test5', get(dataAtom)],
-    keepPreviousData: true,
-    queryFn: async () => {
-      await new Promise<void>((r) => (resolve = r))
-      const response = mockFetch({ count: get(dataAtom) })
-      return response
-    },
-  }))
-  const Counter = () => {
-    const [countData] = useAtom(countAtom)
-    const { data, isPending, isError } = countData
-
-    if (isPending) {
-      return <>loading</>
-    }
-
-    if (isError) {
-      return <>errorred</>
-    }
-
-    return (
-      <>
-        <div>count: {data.response.count}</div>
-      </>
-    )
-  }
-  const RefreshButton = () => {
-    const [data, setData] = useAtom(dataAtom)
-    return <button onClick={() => setData(data + 1)}>refetch</button>
-  }
-
-  const { findByText, getByText } = render(
-    <StrictMode>
-      <Counter />
-      <RefreshButton />
-    </StrictMode>
-  )
-
-  await findByText('loading')
-  resolve()
-  await findByText('count: 0')
-
-  fireEvent.click(getByText('refetch'))
-  await expect(() => findByText('loading')).rejects.toThrow()
-  resolve()
-  await findByText('count: 1')
-
-  fireEvent.click(getByText('refetch'))
-  await expect(() => findByText('loading')).rejects.toThrow()
-  resolve()
-
-  expect(true)
-  await findByText('count: 2')
 })
 
 it('query with enabled', async () => {
@@ -590,7 +576,7 @@ describe('error handling', () => {
         await new Promise<void>((r) => (resolve = r))
         throw new Error('fetch error')
       },
-      useErrorBoundary: true,
+      throwOnError: true,
     }))
     const Counter = () => {
       const [countData] = useAtom(countAtom)
@@ -618,74 +604,6 @@ describe('error handling', () => {
     resolve()
     await findByText('errored')
   })
-
-  it('can recover from error', async () => {
-    let count = -1
-    let willThrowError = false
-    let resolve = () => {}
-    const countAtom = atomWithQuery(() => ({
-      queryKey: ['recover'],
-      retry: false,
-      queryFn: async () => {
-        willThrowError = !willThrowError
-        ++count
-        await new Promise<void>((r) => (resolve = r))
-        if (willThrowError) {
-          throw new Error('fetch error')
-        }
-        return { response: { count } }
-      },
-      useErrorBoundary: true,
-    }))
-    const Counter = () => {
-      const [countData] = useAtom(countAtom)
-
-      const { data, isPending, refetch } = countData
-
-      if (isPending) {
-        return <>loading</>
-      }
-
-      return (
-        <>
-          <div>count: {data?.response.count}</div>
-          <button onClick={() => refetch()}>refetch</button>
-        </>
-      )
-    }
-
-    const App = () => {
-      return (
-        <QueryErrorResetBoundary>
-          {(reset) => (
-            <ErrorBoundary retry={reset}>
-              <Counter />
-            </ErrorBoundary>
-          )}
-        </QueryErrorResetBoundary>
-      )
-    }
-
-    const { findByText, getByText } = render(<App />)
-
-    await findByText('loading')
-    resolve()
-    await findByText('errored')
-
-    fireEvent.click(getByText('retry'))
-    await findByText('loading')
-    resolve()
-    await findByText('count: 1')
-
-    fireEvent.click(getByText('refetch'))
-    resolve()
-    await findByText('errored')
-
-    fireEvent.click(getByText('retry'))
-    await findByText('loading')
-    resolve()
-    await findByText('count: 3')
-  })
 })
 
 // // Test for bug described here:
@@ -695,7 +613,7 @@ it('renews the result when the query changes and a non stale cache is available'
   const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 5 * 60 * 1000 } },
   })
-  queryClient.setQueryData([2], 2)
+  queryClient.setQueryData(['currentCount', 2], 2)
 
   const currentCountAtom = atom(1)
 
@@ -703,7 +621,7 @@ it('renews the result when the query changes and a non stale cache is available'
     (get) => {
       const currentCount = get(currentCountAtom)
       return {
-        queryKey: [currentCount],
+        queryKey: ['currentCount', currentCount],
         queryFn: () => currentCount,
       }
     },
@@ -713,6 +631,8 @@ it('renews the result when the query changes and a non stale cache is available'
   const Counter = () => {
     const setCurrentCount = useSetAtom(currentCountAtom)
     const [countData] = useAtom(countAtom)
+    console.log({ countData })
+
     const { data, isPending, isError } = countData
 
     if (isPending) {

@@ -1,16 +1,14 @@
 import {
   DefaultError,
-  DefaultedInfiniteQueryObserverOptions,
-  DefinedInfiniteQueryObserverResult,
   InfiniteData,
   InfiniteQueryObserver,
   InfiniteQueryObserverOptions,
-  InfiniteQueryObserverResult,
+  InfiniteQueryObserverSuccessResult,
   QueryClient,
   type QueryKey,
 } from '@tanstack/query-core'
-import { Getter, atom } from 'jotai'
-import { make, pipe, toObservable } from 'wonka'
+import { Atom, Getter, atom } from 'jotai'
+import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
 
 export const atomWithSuspenseInfiniteQuery = <
@@ -30,36 +28,8 @@ export const atomWithSuspenseInfiniteQuery = <
     TQueryKey
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-) => {
+): Atom<Promise<InfiniteQueryObserverSuccessResult<TData, TError>>> => {
   const IN_RENDER = Symbol()
-
-  const queryClientAtom = atom(getQueryClient)
-
-  const optionsAtom = atom<
-    DefaultedInfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryFnData,
-      TQueryKey,
-      TPageParam
-    >
-  >((get) => {
-    const client = get(queryClientAtom)
-    const options = getOptions(get)
-    return client.defaultQueryOptions({
-      ...options,
-      enabled: true,
-      suspense: true,
-    }) as unknown as DefaultedInfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryFnData,
-      TQueryKey,
-      TPageParam
-    >
-  })
 
   const observerCacheAtom = atom(
     () =>
@@ -77,8 +47,9 @@ export const atomWithSuspenseInfiniteQuery = <
   )
 
   const observerAtom = atom((get) => {
-    const options = get(optionsAtom)
-    const client = get(queryClientAtom)
+    const options = getOptions(get)
+    const client = getQueryClient(get)
+
     const observerCache = get(observerCacheAtom)
 
     const observer = observerCache.get(client)
@@ -97,63 +68,22 @@ export const atomWithSuspenseInfiniteQuery = <
     return newObserver
   })
 
-  const sourceAtom = atom((get) => {
-    const observer = get(observerAtom)
-    return make<InfiniteQueryObserverResult<TData, TError>>(({ next }) => {
-      const callback = (result: InfiniteQueryObserverResult<TData, TError>) => {
-        const notifyResult = () => next(result)
-
-        if ((observer as any)[IN_RENDER]) {
-          Promise.resolve().then(notifyResult)
-        } else {
-          notifyResult()
-        }
-      }
-
-      return observer.subscribe(callback)
-    })
-  })
-
-  const observableAtom = atom((get) => {
-    const source = get(sourceAtom)
-
-    return pipe(source, toObservable)
-  })
-
-  const dataAtom = atom((get) => {
-    const observer = get(observerAtom)
-    const observable = get(observableAtom)
-
-    const currentResult = observer.getCurrentResult()
-    const resultAtom = atom(currentResult)
-
-    resultAtom.onMount = (set) => {
-      const { unsubscribe } = observable.subscribe((state) => {
-        set(state)
-      })
-      return unsubscribe
-    }
-
-    return resultAtom
-  })
-
-  return atom((get) => {
-    const options = get(optionsAtom)
-    const observer = get(observerAtom)
-
-    const optimisticResult = observer.getOptimisticResult(options)
-
-    const resultAtom = get(dataAtom)
-    const result = get(resultAtom)
-
-    if (optimisticResult.isPending) {
-      return observer.fetchOptimistic(options).catch((err) => {
-        throw err
-      }) as Promise<DefinedInfiniteQueryObserverResult<TData, TError>>
-    }
-
-    return result as DefinedInfiniteQueryObserverResult<TData, TError>
-  })
+  return baseAtomWithQuery<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryFnData,
+    TQueryKey,
+    TPageParam
+  >(
+    (get) => ({
+      ...getOptions(get),
+      suspense: true,
+      enabled: true,
+    }),
+    (get) => get(observerAtom),
+    getQueryClient
+  )
 }
 
 interface SuspenseInfiniteQueryOptions<

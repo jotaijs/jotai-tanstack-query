@@ -1,7 +1,6 @@
-import React, { Component, ReactNode, StrictMode, Suspense } from 'react'
-import { QueryClient } from '@tanstack/query-core'
+import React, { StrictMode, Suspense } from 'react'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import { atomWithSuspenseInfiniteQuery } from '../src'
 beforeEach(() => {
   jest.useFakeTimers()
