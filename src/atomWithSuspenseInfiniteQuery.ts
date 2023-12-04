@@ -1,19 +1,20 @@
-import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
-import type {
+import {
   DefaultError,
+  DefaultedInfiniteQueryObserverOptions,
+  DefinedInfiniteQueryObserverResult,
   InfiniteData,
+  InfiniteQueryObserver,
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
-  QueryKey,
-  WithRequired,
+  QueryClient,
+  type QueryKey,
 } from '@tanstack/query-core'
-import { type Getter, atom } from 'jotai/vanilla'
+import { Getter, atom } from 'jotai'
 import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
-import { getHasError } from './utils'
 
-export function atomWithInfiniteQuery<
-  TQueryFnData,
+export const atomWithSuspenseInfiniteQuery = <
+  TQueryFnData = unknown,
   TError = DefaultError,
   TData = InfiniteData<TQueryFnData>,
   TQueryKey extends QueryKey = QueryKey,
@@ -21,14 +22,43 @@ export function atomWithInfiniteQuery<
 >(
   getOptions: (
     get: Getter
-  ) => InfiniteQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
+  ) => SuspenseInfiniteQueryOptions<
+    TQueryFnData,
+    TError,
+    TPageParam,
+    TData,
+    TQueryKey
+  >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-) {
+) => {
   const IN_RENDER = Symbol()
 
   const queryClientAtom = atom(getQueryClient)
-  const optionsAtom = atom((get) => {
-    return getOptions(get)
+
+  const optionsAtom = atom<
+    DefaultedInfiniteQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey,
+      TPageParam
+    >
+  >((get) => {
+    const client = get(queryClientAtom)
+    const options = getOptions(get)
+    return client.defaultQueryOptions({
+      ...options,
+      enabled: true,
+      suspense: true,
+    }) as unknown as DefaultedInfiniteQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey,
+      TPageParam
+    >
   })
 
   const observerCacheAtom = atom(
@@ -67,25 +97,26 @@ export function atomWithInfiniteQuery<
     return newObserver
   })
 
-  const observableAtom = atom((get) => {
+  const sourceAtom = atom((get) => {
     const observer = get(observerAtom)
-    const source = make<InfiniteQueryObserverResult<TData, TError>>(
-      ({ next }) => {
-        const callback = (
-          result: InfiniteQueryObserverResult<TData, TError>
-        ) => {
-          const notifyResult = () => next(result)
+    return make<InfiniteQueryObserverResult<TData, TError>>(({ next }) => {
+      const callback = (result: InfiniteQueryObserverResult<TData, TError>) => {
+        const notifyResult = () => next(result)
 
-          if ((observer as any)[IN_RENDER]) {
-            Promise.resolve().then(notifyResult)
-          } else {
-            notifyResult()
-          }
+        if ((observer as any)[IN_RENDER]) {
+          Promise.resolve().then(notifyResult)
+        } else {
+          notifyResult()
         }
-
-        return observer.subscribe(callback)
       }
-    )
+
+      return observer.subscribe(callback)
+    })
+  })
+
+  const observableAtom = atom((get) => {
+    const source = get(sourceAtom)
+
     return pipe(source, toObservable)
   })
 
@@ -100,7 +131,7 @@ export function atomWithInfiniteQuery<
       const { unsubscribe } = observable.subscribe((state) => {
         set(state)
       })
-      return () => unsubscribe()
+      return unsubscribe
     }
 
     return resultAtom
@@ -109,40 +140,36 @@ export function atomWithInfiniteQuery<
   return atom((get) => {
     const options = get(optionsAtom)
     const observer = get(observerAtom)
+
+    const optimisticResult = observer.getOptimisticResult(options)
+
     const resultAtom = get(dataAtom)
     const result = get(resultAtom)
 
-    if (
-      getHasError({
-        query: observer.getCurrentQuery(),
-        result,
-        throwOnError: options.throwOnError,
-      })
-    ) {
-      throw result.error
+    if (optimisticResult.isPending) {
+      return observer.fetchOptimistic(options).catch((err) => {
+        throw err
+      }) as Promise<DefinedInfiniteQueryObserverResult<TData, TError>>
     }
 
-    return result
+    return result as DefinedInfiniteQueryObserverResult<TData, TError>
   })
 }
 
-interface InfiniteQueryOptions<
+interface SuspenseInfiniteQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
+  TPageParam = unknown,
   TData = InfiniteData<TQueryFnData>,
   TQueryKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
-> extends WithRequired<
-    Omit<
-      InfiniteQueryObserverOptions<
-        TQueryFnData,
-        TError,
-        TData,
-        TQueryFnData,
-        TQueryKey,
-        TPageParam
-      >,
-      'suspense'
+> extends Omit<
+    InfiniteQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey,
+      TPageParam
     >,
-    'queryKey'
+    'enabled' | 'throwOnError' | 'placeholderData'
   > {}

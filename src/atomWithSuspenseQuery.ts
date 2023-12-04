@@ -10,7 +10,6 @@ import { Atom, Getter, atom } from 'jotai'
 import { make, pipe, toObservable } from 'wonka'
 import { isResetAtom } from './QueryAtomErrorResetBoundary'
 import { queryClientAtom } from './queryClientAtom'
-import { shouldSuspend } from './utils'
 
 export const atomWithSuspenseQuery = <
   TQueryFnData = unknown,
@@ -128,9 +127,12 @@ export const atomWithSuspenseQuery = <
     const options = get(optionsAtom)
     const observer = get(observerAtom)
 
+    const resultAtom = get(dataAtom)
+    const result = get(resultAtom)
+
     const optimisticResult = observer.getOptimisticResult(options)
 
-    const suspend = options.suspense && optimisticResult.isPending
+    const suspend = optimisticResult.isPending
 
     if (suspend) {
       return observer.fetchOptimistic(options).catch((err) => {
@@ -144,9 +146,6 @@ export const atomWithSuspenseQuery = <
     if (shouldThrowError) {
       throw optimisticResult.error
     }
-
-    const resultAtom = get(dataAtom)
-    const result = get(resultAtom)
 
     return result as DefinedQueryObserverResult<TData, TError>
   })

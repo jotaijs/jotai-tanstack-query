@@ -1,19 +1,8 @@
-import React, {
-  Component,
-  StrictMode,
-  Suspense,
-  useCallback,
-  useEffect,
-} from 'react'
+import React, { Component, StrictMode, Suspense } from 'react'
 import type { ReactNode } from 'react'
-import {
-  InfiniteData,
-  QueryFunctionContext,
-  QueryKey,
-} from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
-import { useAtom, useSetAtom } from 'jotai/react'
-import { Getter, atom } from 'jotai/vanilla'
+import { useAtom } from 'jotai/react'
+import { atom } from 'jotai/vanilla'
 import { atomWithInfiniteQuery } from '../src/index'
 
 beforeEach(() => {
@@ -164,7 +153,7 @@ it('infinite query with enabled', async () => {
     if (isPending) return <>loading</>
     if (isError) return <>error</>
 
-    return <div>slug: {data?.pages?.[0]?.response?.slug}</div>
+    return <div>slug: {data.pages[0]?.response?.slug}</div>
   }
 
   const Parent = () => {

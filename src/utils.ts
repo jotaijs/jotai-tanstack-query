@@ -7,18 +7,18 @@ import type {
 } from '@tanstack/query-core'
 import { QueryErrorResetBoundaryValue } from './QueryAtomErrorResetBoundary'
 
-export const shouldSuspend = (
-  defaultedOptions:
-    | DefaultedQueryObserverOptions<any, any, any, any, any>
-    | undefined,
-  result: QueryObserverResult<any, any>,
-  isRestoring: boolean
-) => defaultedOptions?.suspense && willFetch(result, isRestoring)
+// export const shouldSuspend = (
+//   defaultedOptions:
+//     | DefaultedQueryObserverOptions<any, any, any, any, any>
+//     | undefined,
+//   result: QueryObserverResult<any, any>,
+//   isRestoring: boolean
+// ) => defaultedOptions?.suspense && willFetch(result, isRestoring)
 
-export const willFetch = (
-  result: QueryObserverResult<any, any>,
-  isRestoring: boolean
-) => result.isPending && !isRestoring
+// export const willFetch = (
+//   result: QueryObserverResult<any, any>,
+//   isRestoring: boolean
+// ) => result.isPending && !isRestoring
 
 export const getHasError = <
   TData,
