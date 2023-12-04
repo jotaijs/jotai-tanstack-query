@@ -2,13 +2,6 @@ import React, { StrictMode, Suspense } from 'react'
 import { fireEvent, render } from '@testing-library/react'
 import { useAtom } from 'jotai'
 import { atomWithSuspenseInfiniteQuery } from '../src'
-beforeEach(() => {
-  jest.useFakeTimers()
-})
-afterEach(() => {
-  jest.runAllTimers()
-  jest.useRealTimers()
-})
 
 it('suspense basic, suspends', async () => {
   let resolve = () => {}

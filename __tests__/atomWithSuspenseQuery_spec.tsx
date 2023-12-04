@@ -3,13 +3,6 @@ import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
 import { atom, useAtom, useSetAtom } from 'jotai'
 import { atomWithSuspenseQuery } from '../src'
-beforeEach(() => {
-  jest.useFakeTimers()
-})
-afterEach(() => {
-  jest.runAllTimers()
-  jest.useRealTimers()
-})
 
 it('suspense basic, suspends', async () => {
   let resolve = () => {}

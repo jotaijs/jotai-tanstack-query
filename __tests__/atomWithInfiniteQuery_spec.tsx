@@ -5,14 +5,6 @@ import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
 import { atomWithInfiniteQuery } from '../src/index'
 
-beforeEach(() => {
-  jest.useFakeTimers()
-})
-afterEach(() => {
-  jest.runAllTimers()
-  jest.useRealTimers()
-})
-
 it('infinite query basic test', async () => {
   let resolve = () => {}
   type DataResponse = { response: { count: number } }
@@ -188,8 +180,6 @@ it('infinite query with enabled', async () => {
 })
 
 it('infinite query with enabled 2', async () => {
-  jest.useRealTimers() // FIXME can avoid?
-
   const enabledAtom = atom<boolean>(true)
   const slugAtom = atom<string | null>('first')
   type DataResponse = {
@@ -198,6 +188,7 @@ it('infinite query with enabled 2', async () => {
       currentPage: number
     }
   }
+  let resolve = () => {}
   const slugQueryAtom = atomWithInfiniteQuery<DataResponse>((get) => {
     const slug = get(slugAtom)
     const isEnabled = get(enabledAtom)
@@ -207,7 +198,7 @@ it('infinite query with enabled 2', async () => {
       enabled: isEnabled,
       queryKey: ['enabled_toggle'],
       queryFn: async ({ pageParam }) => {
-        await new Promise<void>((r) => setTimeout(r, 100)) // FIXME can avoid?
+        await new Promise<void>((r) => (resolve = r))
         return {
           response: { slug: `hello-${slug}`, currentPage: pageParam as number },
         }
@@ -264,17 +255,15 @@ it('infinite query with enabled 2', async () => {
   )
 
   await findByText('loading')
+  resolve()
   await findByText('slug: hello-first')
-
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   fireEvent.click(getByText('set disabled'))
   fireEvent.click(getByText('set slug'))
 
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   await findByText('slug: hello-first')
 
-  await new Promise((r) => setTimeout(r, 100)) // FIXME we want to avoid this
   fireEvent.click(getByText('set enabled'))
+  resolve()
   await findByText('slug: hello-world')
 })
 
