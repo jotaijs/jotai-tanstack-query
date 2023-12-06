@@ -376,3 +376,48 @@ it('renews the result when the query changes and a non stale cache is available'
   await expect(() => findByText('loading')).rejects.toThrow()
   await findByText('count: 2')
 })
+
+it('on reset, throws suspense', async () => {
+  const queryClient = new QueryClient()
+  let count = 0
+  let resolve = () => {}
+  const countAtom = atomWithSuspenseQuery(
+    () => ({
+      queryKey: ['test1', count],
+      queryFn: async () => {
+        await new Promise<void>((r) => (resolve = r))
+        count++
+        return { response: { count } }
+      },
+    }),
+    () => queryClient
+  )
+  const Counter = () => {
+    const [{ data }] = useAtom(countAtom)
+    return (
+      <>
+        <div>count: {data.response.count}</div>
+        <button
+          onClick={() => queryClient.resetQueries({ queryKey: ['test1'] })}>
+          reset
+        </button>
+      </>
+    )
+  }
+
+  const { findByText, getByText } = render(
+    <StrictMode>
+      <Suspense fallback="loading">
+        <Counter />
+      </Suspense>
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  resolve()
+  await findByText('count: 1')
+  fireEvent.click(getByText('reset'))
+  await findByText('loading')
+  resolve()
+  await findByText('count: 2')
+})
