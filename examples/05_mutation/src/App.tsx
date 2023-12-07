@@ -1,8 +1,8 @@
 import React from 'react'
 import { useAtom } from 'jotai/react'
-import { atomsWithMutation } from 'jotai-tanstack-query'
+import { atomWithMutation } from 'jotai-tanstack-query'
 
-const [, statusAtom] = atomsWithMutation(() => ({
+const postAtom = atomWithMutation(() => ({
   mutationKey: ['posts'],
   mutationFn: async ({ title }: { title: string }) => {
     const res = await fetch(`https://jsonplaceholder.typicode.com/posts`, {
@@ -22,10 +22,10 @@ const [, statusAtom] = atomsWithMutation(() => ({
 }))
 
 const Posts = () => {
-  const [status, dispatch] = useAtom(statusAtom)
+  const [{ mutate, status }] = useAtom(postAtom)
   return (
     <div>
-      <button onClick={() => dispatch([{ title: 'foo' }])}>Click me</button>
+      <button onClick={() => mutate({ title: 'foo' })}>Click me</button>
       <pre>{JSON.stringify(status, null, 2)}</pre>
     </div>
   )

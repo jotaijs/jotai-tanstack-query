@@ -1,13 +1,13 @@
-import React, { Suspense } from 'react'
-import { useAtom, useSetAtom } from 'jotai/react'
+import React from 'react'
+import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
-import { atomsWithQuery } from 'jotai-tanstack-query'
+import { atomWithQuery } from 'jotai-tanstack-query'
 import { ErrorBoundary } from 'react-error-boundary'
 import type { FallbackProps } from 'react-error-boundary'
 
 const idAtom = atom(1)
 
-const [userAtom] = atomsWithQuery((get) => ({
+const userAtom = atomWithQuery((get) => ({
   queryKey: ['users', get(idAtom)],
   queryFn: async ({ queryKey: [, id] }) => {
     const res = await fetch(`https://reqres.in/api/users/${id}`)
@@ -16,7 +16,8 @@ const [userAtom] = atomsWithQuery((get) => ({
 }))
 
 const UserData = () => {
-  const [{ data }, dispatch] = useAtom(userAtom)
+  const [{ data, refetch, isPending }] = useAtom(userAtom)
+  if (isPending) return <div>Loading...</div>
   return (
     <div>
       <ul>
@@ -24,7 +25,7 @@ const UserData = () => {
         <li>First Name: {data.first_name}</li>
         <li>Last Name: {data.last_name}</li>
       </ul>
-      <button onClick={() => dispatch({ type: 'refetch' })}>refetch</button>
+      <button onClick={() => refetch()}>refetch</button>
     </div>
   )
 }
@@ -45,18 +46,11 @@ const Controls = () => {
 }
 
 const Fallback = ({ error, resetErrorBoundary }: FallbackProps) => {
-  const setId = useSetAtom(idAtom)
-  const dispatch = useSetAtom(userAtom)
-  const retry = () => {
-    setId(1)
-    dispatch({ type: 'refetch', force: true })
-    resetErrorBoundary()
-  }
   return (
     <div role="alert">
       <p>Something went wrong:</p>
       <pre>{error.message}</pre>
-      <button type="button" onClick={retry}>
+      <button type="button" onClick={resetErrorBoundary}>
         Try again
       </button>
     </div>
@@ -65,10 +59,8 @@ const Fallback = ({ error, resetErrorBoundary }: FallbackProps) => {
 
 const App = () => (
   <ErrorBoundary FallbackComponent={Fallback}>
-    <Suspense fallback="Loading...">
-      <Controls />
-      <UserData />
-    </Suspense>
+    <Controls />
+    <UserData />
   </ErrorBoundary>
 )
 

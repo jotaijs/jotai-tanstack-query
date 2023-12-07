@@ -16,5 +16,6 @@
     "paths": {
       "jotai-tanstack-query": ["./src"]
     }
-  }
+  },
+  "exclude": ["node_modules", "dist", "webpack.config.js"]
 }
