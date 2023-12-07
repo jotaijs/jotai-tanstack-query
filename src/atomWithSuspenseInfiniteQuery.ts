@@ -46,6 +46,9 @@ export const atomWithSuspenseInfiniteQuery = <
         >
       >()
   )
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
 
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
@@ -65,6 +68,9 @@ export const atomWithSuspenseInfiniteQuery = <
 
     return dOptions
   })
+  if (process.env.NODE_ENV !== 'production') {
+    optionsAtom.debugPrivate = true
+  }
 
   const observerAtom = atom((get) => {
     const options = get(optionsAtom)
@@ -87,6 +93,10 @@ export const atomWithSuspenseInfiniteQuery = <
 
     return newObserver
   })
+  if (process.env.NODE_ENV !== 'production') {
+    observerAtom.debugPrivate = true
+  }
+
   return baseAtomWithQuery<
     TQueryFnData,
     TError,

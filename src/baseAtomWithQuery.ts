@@ -141,6 +141,9 @@ export function baseAtomWithQuery<
 ) {
   const IN_RENDER = Symbol()
   const resetAtom = atom(0)
+  if (process.env.NODE_ENV !== 'production') {
+    resetAtom.debugPrivate = true
+  }
 
   const observableAtom = atom((get) => {
     const observer = getObserver(get)
@@ -159,6 +162,9 @@ export function baseAtomWithQuery<
     })
     return pipe(source, toObservable)
   })
+  if (process.env.NODE_ENV !== 'production') {
+    observableAtom.debugPrivate = true
+  }
 
   const dataAtom = atom((get) => {
     const observer = getObserver(get)
@@ -166,6 +172,9 @@ export function baseAtomWithQuery<
 
     const currentResult = observer.getCurrentResult()
     const resultAtom = atom(currentResult)
+    if (process.env.NODE_ENV !== 'production') {
+      resultAtom.debugPrivate = true
+    }
 
     resultAtom.onMount = (set) => {
       const { unsubscribe } = observable.subscribe((state) => {
@@ -176,6 +185,9 @@ export function baseAtomWithQuery<
 
     return resultAtom
   })
+  if (process.env.NODE_ENV !== 'production') {
+    dataAtom.debugPrivate = true
+  }
 
   return atom((get) => {
     const observer = getObserver(get)

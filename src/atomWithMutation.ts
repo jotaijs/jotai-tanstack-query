@@ -22,15 +22,19 @@ export function atomWithMutation<
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   const resetAtom = atom(0)
+  if (process.env.NODE_ENV !== 'production') {
+    resetAtom.debugPrivate = true
+  }
   const IN_RENDER = Symbol()
-  const queryClientAtom = atom(getQueryClient)
 
   const optionsAtom = atom((get) => {
-    const client = get(queryClientAtom)
+    const client = getQueryClient(get)
     const options = getOptions(get)
     return client.defaultMutationOptions(options)
   })
-
+  if (process.env.NODE_ENV !== 'production') {
+    optionsAtom.debugPrivate = true
+  }
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
@@ -38,6 +42,9 @@ export function atomWithMutation<
         MutationObserver<TData, TError, TVariables, TContext>
       >()
   )
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
 
   const observerAtom = atom((get) => {
     const options = get(optionsAtom)
@@ -59,6 +66,9 @@ export function atomWithMutation<
 
     return newObserver
   })
+  if (process.env.NODE_ENV !== 'production') {
+    observerAtom.debugPrivate = true
+  }
 
   const observableAtom = atom((get) => {
     const observer = get(observerAtom)
@@ -79,9 +89,13 @@ export function atomWithMutation<
 
       return observer.subscribe(callback)
     })
-    return atomWithObservable(() => pipe(source, toObservable), {
+    const resultAtom = atomWithObservable(() => pipe(source, toObservable), {
       initialValue: observer.getCurrentResult(),
     })
+    if (process.env.NODE_ENV !== 'production') {
+      resultAtom.debugPrivate = true
+    }
+    return resultAtom
   })
 
   const mutateAtom = atom((get) => {
@@ -95,6 +109,9 @@ export function atomWithMutation<
 
     return mutate
   })
+  if (process.env.NODE_ENV !== 'production') {
+    mutateAtom.debugPrivate = true
+  }
 
   return atom((get) => {
     get(resetAtom)

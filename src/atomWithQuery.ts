@@ -34,6 +34,9 @@ export function atomWithQuery<
         QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
       >()
   )
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
 
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
@@ -44,6 +47,9 @@ export function atomWithQuery<
 
     return dOptions
   })
+  if (process.env.NODE_ENV !== 'production') {
+    optionsAtom.debugPrivate = true
+  }
 
   const observerAtom = atom((get) => {
     const options = get(optionsAtom)
@@ -66,6 +72,9 @@ export function atomWithQuery<
 
     return newObserver
   })
+  if (process.env.NODE_ENV !== 'production') {
+    observerAtom.debugPrivate = true
+  }
 
   return baseAtomWithQuery<TQueryFnData, TError, TData, TQueryData, TQueryKey>(
     (get) => ({ ...get(optionsAtom), suspense: false }),

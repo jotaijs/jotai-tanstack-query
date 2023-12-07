@@ -40,7 +40,9 @@ export function atomWithInfiniteQuery<
         >
       >()
   )
-
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
     const options = getOptions(get)
@@ -59,7 +61,9 @@ export function atomWithInfiniteQuery<
 
     return dOptions
   })
-
+  if (process.env.NODE_ENV !== 'production') {
+    optionsAtom.debugPrivate = true
+  }
   const observerAtom = atom((get) => {
     const options = get(optionsAtom)
     const client = getQueryClient(get)

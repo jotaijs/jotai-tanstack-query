@@ -37,6 +37,10 @@ export const atomWithMutationState = <TResult = MutationState>(
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) => {
   const resultsAtom = atom<TResult[]>([])
+  if (process.env.NODE_ENV !== 'production') {
+    resultsAtom.debugPrivate = true
+  }
+
   const observableAtom = atom((get) => {
     const queryClient = getQueryClient(get)
 
@@ -47,6 +51,9 @@ export const atomWithMutationState = <TResult = MutationState>(
       })
     }
   })
+  if (process.env.NODE_ENV !== 'production') {
+    observableAtom.debugPrivate = true
+  }
 
   return atom((get) => {
     get(observableAtom)
