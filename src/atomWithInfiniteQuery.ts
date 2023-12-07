@@ -1,6 +1,7 @@
 import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
 import type {
   DefaultError,
+  DefaultedInfiniteQueryObserverOptions,
   InfiniteData,
   InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
@@ -40,8 +41,27 @@ export function atomWithInfiniteQuery<
       >()
   )
 
-  const observerAtom = atom((get) => {
+  const optionsAtom = atom((get) => {
+    const client = getQueryClient(get)
     const options = getOptions(get)
+    const dOptions = client.defaultQueryOptions(
+      options
+    ) as DefaultedInfiniteQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey,
+      TPageParam
+    >
+
+    dOptions._optimisticResults = 'optimistic'
+
+    return dOptions
+  })
+
+  const observerAtom = atom((get) => {
+    const options = get(optionsAtom)
     const client = getQueryClient(get)
 
     const observerCache = get(observerCacheAtom)
@@ -50,7 +70,7 @@ export function atomWithInfiniteQuery<
 
     if (observer) {
       ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options)
+      observer.setOptions(options, { listeners: false })
       delete (observer as any)[IN_RENDER]
 
       return observer
@@ -71,7 +91,7 @@ export function atomWithInfiniteQuery<
     TPageParam
   >(
     (get) => ({
-      ...getOptions(get),
+      ...get(optionsAtom),
       suspense: false,
     }),
     (get) => get(observerAtom),

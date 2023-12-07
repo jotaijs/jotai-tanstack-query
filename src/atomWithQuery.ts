@@ -34,8 +34,19 @@ export function atomWithQuery<
         QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
       >()
   )
-  const observerAtom = atom((get) => {
+
+  const optionsAtom = atom((get) => {
+    const client = getQueryClient(get)
     const options = getOptions(get)
+    const dOptions = client.defaultQueryOptions(options)
+
+    dOptions._optimisticResults = 'optimistic'
+
+    return dOptions
+  })
+
+  const observerAtom = atom((get) => {
+    const options = get(optionsAtom)
     const client = getQueryClient(get)
 
     const observerCache = get(observerCacheAtom)
@@ -57,7 +68,7 @@ export function atomWithQuery<
   })
 
   return baseAtomWithQuery<TQueryFnData, TError, TData, TQueryData, TQueryKey>(
-    getOptions,
+    (get) => ({ ...get(optionsAtom), suspense: false }),
     (get) => get(observerAtom),
     getQueryClient
   )

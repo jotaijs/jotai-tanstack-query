@@ -19,7 +19,10 @@ export const atomWithSuspenseQuery = <
 >(
   getOptions: (
     get: Getter
-  ) => QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+  ) => Omit<
+    QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+    'suspense' | 'enabled'
+  >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): Atom<
   | DefinedQueryObserverResult<TData, TError>
@@ -34,8 +37,19 @@ export const atomWithSuspenseQuery = <
         QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
       >()
   )
-  const observerAtom = atom((get) => {
+
+  const optionsAtom = atom((get) => {
+    const client = getQueryClient(get)
     const options = getOptions(get)
+    const dOptions = client.defaultQueryOptions(options)
+
+    dOptions._optimisticResults = 'optimistic'
+
+    return dOptions
+  })
+
+  const observerAtom = atom((get) => {
+    const options = get(optionsAtom)
     const client = getQueryClient(get)
 
     const observerCache = get(observerCacheAtom)
@@ -58,7 +72,7 @@ export const atomWithSuspenseQuery = <
 
   return baseAtomWithQuery<TQueryFnData, TError, TData, TQueryData, TQueryKey>(
     (get) => ({
-      ...getOptions(get),
+      ...get(optionsAtom),
       suspense: true,
       enabled: true,
     }),

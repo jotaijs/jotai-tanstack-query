@@ -1,5 +1,6 @@
 import {
   DefaultError,
+  DefaultedInfiniteQueryObserverOptions,
   InfiniteData,
   InfiniteQueryObserver,
   InfiniteQueryObserverOptions,
@@ -46,8 +47,27 @@ export const atomWithSuspenseInfiniteQuery = <
       >()
   )
 
-  const observerAtom = atom((get) => {
+  const optionsAtom = atom((get) => {
+    const client = getQueryClient(get)
     const options = getOptions(get)
+    const dOptions = client.defaultQueryOptions(
+      options
+    ) as DefaultedInfiniteQueryObserverOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey,
+      TPageParam
+    >
+
+    dOptions._optimisticResults = 'optimistic'
+
+    return dOptions
+  })
+
+  const observerAtom = atom((get) => {
+    const options = get(optionsAtom)
     const client = getQueryClient(get)
 
     const observerCache = get(observerCacheAtom)
@@ -67,7 +87,6 @@ export const atomWithSuspenseInfiniteQuery = <
 
     return newObserver
   })
-
   return baseAtomWithQuery<
     TQueryFnData,
     TError,
@@ -77,7 +96,7 @@ export const atomWithSuspenseInfiniteQuery = <
     TPageParam
   >(
     (get) => ({
-      ...getOptions(get),
+      ...get(optionsAtom),
       suspense: true,
       enabled: true,
     }),

@@ -1,13 +1,13 @@
 import {
   DefaultError,
+  DefaultedInfiniteQueryObserverOptions,
+  DefaultedQueryObserverOptions,
   InfiniteQueryObserver,
-  InfiniteQueryObserverOptions,
   InfiniteQueryObserverResult,
   InfiniteQueryObserverSuccessResult,
   QueryClient,
   QueryKey,
   QueryObserver,
-  QueryObserverOptions,
   QueryObserverResult,
   QueryObserverSuccessResult,
 } from '@tanstack/query-core'
@@ -25,13 +25,13 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => QueryObserverOptions<
+  ) => DefaultedQueryObserverOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryData,
     TQueryKey
-  > & { suspense: true },
+  > & { suspense: true; enabled: true },
   getObserver: (
     get: Getter
   ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
@@ -46,13 +46,13 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => QueryObserverOptions<
+  ) => DefaultedQueryObserverOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryData,
     TQueryKey
-  > & { suspense?: false },
+  > & { suspense: false },
   getObserver: (
     get: Getter
   ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
@@ -68,14 +68,14 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => InfiniteQueryObserverOptions<
+  ) => DefaultedInfiniteQueryObserverOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryData,
     TQueryKey,
     TPageParam
-  > & { suspense: true },
+  > & { suspense: true; enabled: true },
   getObserver: (
     get: Getter
   ) => InfiniteQueryObserver<
@@ -98,14 +98,14 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => InfiniteQueryObserverOptions<
+  ) => DefaultedInfiniteQueryObserverOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryData,
     TQueryKey,
     TPageParam
-  > & { suspense?: false },
+  > & { suspense: false },
   getObserver: (
     get: Getter
   ) => InfiniteQueryObserver<
@@ -127,26 +127,23 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+  ) => DefaultedQueryObserverOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryData,
+    TQueryKey
+  >,
   getObserver: (
     get: Getter
   ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   const IN_RENDER = Symbol()
-
-  const queryClientAtom = atom(getQueryClient)
-
-  const optionsAtom = atom((get) => {
-    const client = get(queryClientAtom)
-    const options = getOptions(get)
-    return client.defaultQueryOptions(options)
-  })
-
-  const observerAtom = atom(getObserver)
+  const resetAtom = atom(0)
 
   const observableAtom = atom((get) => {
-    const observer = get(observerAtom)
+    const observer = getObserver(get)
     const source = make<QueryObserverResult<TData, TError>>(({ next }) => {
       const callback = (result: QueryObserverResult<TData, TError>) => {
         const notifyResult = () => next(result)
@@ -158,14 +155,13 @@ export function baseAtomWithQuery<
         }
       }
 
-      const unsubscribe = observer.subscribe(callback)
-      return () => unsubscribe()
+      return observer.subscribe(callback)
     })
     return pipe(source, toObservable)
   })
 
   const dataAtom = atom((get) => {
-    const observer = get(observerAtom)
+    const observer = getObserver(get)
     const observable = get(observableAtom)
 
     const currentResult = observer.getCurrentResult()
@@ -182,13 +178,24 @@ export function baseAtomWithQuery<
   })
 
   return atom((get) => {
-    const options = get(optionsAtom)
-    const observer = get(observerAtom)
+    const observer = getObserver(get)
+    const options = getOptions(get)
 
-    const optimisticResult = observer.getOptimisticResult(options)
+    const client = getQueryClient(get)
 
+    resetAtom.onMount = () => {
+      return () => {
+        if (observer.getCurrentResult().isError) {
+          client.resetQueries({ queryKey: observer.getCurrentQuery().queryKey })
+        }
+      }
+    }
+
+    get(resetAtom)
     const resultAtom = get(dataAtom)
     const result = get(resultAtom)
+
+    const optimisticResult = observer.getOptimisticResult(options)
 
     if (shouldSuspend(options, optimisticResult, false)) {
       return observer.fetchOptimistic(options)

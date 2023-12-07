@@ -5,6 +5,16 @@ import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
 import { atomWithInfiniteQuery } from '../src/index'
 
+let originalConsoleError: typeof console.error
+
+beforeEach(() => {
+  originalConsoleError = console.error
+  console.error = jest.fn()
+})
+afterEach(() => {
+  console.error = originalConsoleError
+})
+
 it('infinite query basic test', async () => {
   let resolve = () => {}
   type DataResponse = { response: { count: number } }

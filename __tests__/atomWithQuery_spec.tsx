@@ -1,21 +1,22 @@
-import React, {
-  Component,
-  ReactNode,
-  StrictMode,
-  Suspense,
-  useState,
-} from 'react'
+import React, { StrictMode, Suspense, useState } from 'react'
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
 import { Getter, atom, useAtom, useSetAtom } from 'jotai'
 import { unwrap } from 'jotai/utils'
+import { ErrorBoundary } from 'react-error-boundary'
 import { atomWithQuery } from '../src'
+
+let originalConsoleError: typeof console.error
+
 beforeEach(() => {
   jest.useFakeTimers()
+  originalConsoleError = console.error
+  console.error = jest.fn()
 })
 afterEach(() => {
   jest.runAllTimers()
   jest.useRealTimers()
+  console.error = originalConsoleError
 })
 
 it('query basic test', async () => {
@@ -535,38 +536,6 @@ it('query expected QueryCache test', async () => {
 })
 
 describe('error handling', () => {
-  class ErrorBoundary extends Component<
-    { message?: string; retry?: () => void; children: ReactNode },
-    { hasError: boolean }
-  > {
-    constructor(props: { message?: string; children: ReactNode }) {
-      super(props)
-      this.state = { hasError: false }
-    }
-    static getDerivedStateFromError() {
-      return { hasError: true }
-    }
-
-    render() {
-      return this.state.hasError ? (
-        <div>
-          {this.props.message || 'errored'}
-          {this.props.retry && (
-            <button
-              onClick={() => {
-                this.props.retry?.()
-                this.setState({ hasError: false })
-              }}>
-              retry
-            </button>
-          )}
-        </div>
-      ) : (
-        this.props.children
-      )
-    }
-  }
-
   it('can catch error in error boundary', async () => {
     let resolve = () => {}
     const countAtom = atomWithQuery(() => ({
@@ -594,7 +563,7 @@ describe('error handling', () => {
 
     const { findByText } = render(
       <StrictMode>
-        <ErrorBoundary>
+        <ErrorBoundary fallback={<>errored</>}>
           <Counter />
         </ErrorBoundary>
       </StrictMode>
@@ -603,6 +572,77 @@ describe('error handling', () => {
     await findByText('loading')
     resolve()
     await findByText('errored')
+  })
+
+  it('can recover from error', async () => {
+    let count = -1
+    let willThrowError = false
+    let resolve = () => {}
+    const countAtom = atomWithQuery(() => ({
+      queryKey: ['error test', 'count2'],
+      retry: false,
+      queryFn: async () => {
+        willThrowError = !willThrowError
+        ++count
+        await new Promise<void>((r) => (resolve = r))
+        if (willThrowError) {
+          throw new Error('fetch error')
+        }
+        return { response: { count } }
+      },
+      throwOnError: true,
+    }))
+    const Counter = () => {
+      const [countData] = useAtom(countAtom)
+      if (countData.isFetching) return <>loading</>
+      return (
+        <>
+          <div>count: {countData.data?.response.count}</div>
+          <button onClick={() => countData.refetch()}>refetch</button>
+        </>
+      )
+    }
+
+    const App = () => {
+      return (
+        <ErrorBoundary
+          FallbackComponent={({ resetErrorBoundary }) => {
+            return (
+              <>
+                <h1>errored</h1>
+                <button onClick={() => resetErrorBoundary()}>retry</button>
+              </>
+            )
+          }}>
+          <Counter />
+        </ErrorBoundary>
+      )
+    }
+
+    const { findByText, getByText } = render(
+      <>
+        <App />
+      </>
+    )
+
+    await findByText('loading')
+    resolve()
+    await findByText('errored')
+
+    fireEvent.click(getByText('retry'))
+    await findByText('loading')
+    resolve()
+    await findByText('count: 1')
+
+    fireEvent.click(getByText('refetch'))
+    await findByText('loading')
+    resolve()
+    await findByText('errored')
+
+    fireEvent.click(getByText('retry'))
+    await findByText('loading')
+    resolve()
+    await findByText('count: 3')
   })
 })
 
