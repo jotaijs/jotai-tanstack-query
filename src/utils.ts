@@ -5,7 +5,6 @@ import type {
   QueryObserverResult,
   ThrowOnError,
 } from '@tanstack/query-core'
-import { QueryErrorResetBoundaryValue } from './QueryAtomErrorResetBoundary'
 
 export const shouldSuspend = (
   defaultedOptions:
@@ -32,7 +31,6 @@ export const getHasError = <
   query,
 }: {
   result: QueryObserverResult<TData, TError>
-  errorResetBoundary?: QueryErrorResetBoundaryValue
   throwOnError:
     | ThrowOnError<TQueryFnData, TError, TQueryData, TQueryKey>
     | undefined
