@@ -5,7 +5,6 @@ import {
   QueryClient,
 } from '@tanstack/query-core'
 import { Getter, atom } from 'jotai'
-import { atomWithObservable } from 'jotai/utils'
 import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
 import { shouldThrowError } from './utils'
@@ -21,10 +20,6 @@ export function atomWithMutation<
   ) => MutationObserverOptions<TData, TError, TVariables, TContext>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
-  const resetAtom = atom(0)
-  if (process.env.NODE_ENV !== 'production') {
-    resetAtom.debugPrivate = true
-  }
   const IN_RENDER = Symbol()
 
   const optionsAtom = atom((get) => {
@@ -35,6 +30,7 @@ export function atomWithMutation<
   if (process.env.NODE_ENV !== 'production') {
     optionsAtom.debugPrivate = true
   }
+
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
@@ -48,7 +44,7 @@ export function atomWithMutation<
 
   const observerAtom = atom((get) => {
     const options = get(optionsAtom)
-    const client = get(queryClientAtom)
+    const client = getQueryClient(get)
     const observerCache = get(observerCacheAtom)
 
     const observer = observerCache.get(client)
@@ -89,12 +85,29 @@ export function atomWithMutation<
 
       return observer.subscribe(callback)
     })
-    const resultAtom = atomWithObservable(() => pipe(source, toObservable), {
-      initialValue: observer.getCurrentResult(),
-    })
+    return pipe(source, toObservable)
+  })
+
+  const dataAtom = atom((get) => {
+    const observer = get(observerAtom)
+    const observable = get(observableAtom)
+
+    const currentResult = observer.getCurrentResult()
+    const resultAtom = atom(currentResult)
+
+    resultAtom.onMount = (set) => {
+      const { unsubscribe } = observable.subscribe((state) => {
+        set(state)
+      })
+      return () => {
+        unsubscribe
+        observer.reset()
+      }
+    }
     if (process.env.NODE_ENV !== 'production') {
       resultAtom.debugPrivate = true
     }
+
     return resultAtom
   })
 
@@ -114,18 +127,11 @@ export function atomWithMutation<
   }
 
   return atom((get) => {
-    get(resetAtom)
     const observer = get(observerAtom)
-    const resultAtom = get(observableAtom)
+    const resultAtom = get(dataAtom)
 
     const result = get(resultAtom)
     const mutate = get(mutateAtom)
-
-    resetAtom.onMount = () => {
-      return () => {
-        observer.reset()
-      }
-    }
 
     if (
       result.isError &&
