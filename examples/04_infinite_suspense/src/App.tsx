@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useAtom } from 'jotai/react'
-import { atomWithInfiniteQuery } from 'jotai-tanstack-query'
+import { atomWithSuspenseInfiniteQuery } from 'jotai-tanstack-query'
 
-const postsAtom = atomWithInfiniteQuery(() => ({
+const postsAtom = atomWithSuspenseInfiniteQuery(() => ({
   initialPageParam: 1,
   queryKey: ['posts'],
   queryFn: async ({ pageParam = 1 }) => {
@@ -17,18 +17,23 @@ const postsAtom = atomWithInfiniteQuery(() => ({
 
 const Posts = () => {
   const [{ data, fetchNextPage }] = useAtom(postsAtom)
-
   return (
     <div>
       <button onClick={() => fetchNextPage()}>Next</button>
-      <ul>{data?.pages.map((item) => <li key={item.id}>{item.title}</li>)}</ul>
+      <ul>
+        {data.pages.map((item) => (
+          <li key={item.id}>{item.title}</li>
+        ))}
+      </ul>
     </div>
   )
 }
 
 const App = () => (
   <>
-    <Posts />
+    <Suspense fallback="Loading...">
+      <Posts />
+    </Suspense>
   </>
 )
 

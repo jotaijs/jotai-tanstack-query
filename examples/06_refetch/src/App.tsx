@@ -1,5 +1,5 @@
-import React, { Suspense } from 'react'
-import { useAtom, useSetAtom } from 'jotai/react'
+import React from 'react'
+import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
 import { atomWithQuery } from 'jotai-tanstack-query'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -16,7 +16,8 @@ const userAtom = atomWithQuery((get) => ({
 }))
 
 const UserData = () => {
-  const [{ data, refetch }] = useAtom(userAtom)
+  const [{ data, refetch, isPending }] = useAtom(userAtom)
+  if (isPending) return <div>Loading...</div>
   return (
     <div>
       <ul>
@@ -44,20 +45,12 @@ const Controls = () => {
   )
 }
 
-//TODO: fix error catching and retry
 const Fallback = ({ error, resetErrorBoundary }: FallbackProps) => {
-  const setId = useSetAtom(idAtom)
-  const [{ refetch }] = useAtom(userAtom)
-  const retry = () => {
-    setId(1)
-    refetch()
-    resetErrorBoundary()
-  }
   return (
     <div role="alert">
       <p>Something went wrong:</p>
       <pre>{error.message}</pre>
-      <button type="button" onClick={retry}>
+      <button type="button" onClick={resetErrorBoundary}>
         Try again
       </button>
     </div>
@@ -66,10 +59,8 @@ const Fallback = ({ error, resetErrorBoundary }: FallbackProps) => {
 
 const App = () => (
   <ErrorBoundary FallbackComponent={Fallback}>
-    <Suspense fallback="Loading...">
-      <Controls />
-      <UserData />
-    </Suspense>
+    <Controls />
+    <UserData />
   </ErrorBoundary>
 )
 
