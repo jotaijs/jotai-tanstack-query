@@ -1,28 +1,39 @@
 import React from 'react'
-import { useAtom } from 'jotai/react'
+import { useAtom } from 'jotai'
 import { atomWithInfiniteQuery } from 'jotai-tanstack-query'
 
 const postsAtom = atomWithInfiniteQuery(() => ({
-  initialPageParam: 1,
   queryKey: ['posts'],
-  queryFn: async ({ pageParam = 1 }) => {
+  queryFn: async ({ pageParam }) => {
     const res = await fetch(
-      `https://jsonplaceholder.typicode.com/posts/${pageParam}`
+      `https://jsonplaceholder.typicode.com/posts?_page=${pageParam}`
     )
-    const data: { id: number; title: string } = await res.json()
-    return data
+    return res.json()
   },
-  getNextPageParam: (lastPage) => lastPage.id + 1,
+  getNextPageParam: (...args) => {
+    return args[2] + 1
+  },
+  initialPageParam: 0,
 }))
 
 const Posts = () => {
-  const [{ data, fetchNextPage }] = useAtom(postsAtom)
+  const [{ data, fetchNextPage, isPending, isError, isFetching }] =
+    useAtom(postsAtom)
+
+  if (isFetching || isPending) return <div>Loading...</div>
+  if (isError) return <div>Error</div>
 
   return (
-    <div>
+    <>
+      {data?.pages.map((page, index) => (
+        <div key={index}>
+          {page.map((post: any) => (
+            <div key={post.id}>{post.title}</div>
+          ))}
+        </div>
+      ))}
       <button onClick={() => fetchNextPage()}>Next</button>
-      <ul>{data?.pages.map((item) => <li key={item.id}>{item.title}</li>)}</ul>
-    </div>
+    </>
   )
 }
 
