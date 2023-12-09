@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2023-12-09
+### Added
+- breaking: update atom api to resemble tanstack/query api
+- add: atomWithSuspenseQuery, atomWithSuspenseInfiniteQuery, atomWithMutationState
+
 ## [0.7.2] - 2023-09-08
 ### Changed
 - fix: loading mutation does not call refresh on unmount #38
