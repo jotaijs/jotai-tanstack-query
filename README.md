@@ -39,7 +39,10 @@ You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all 
 
 ```jsx
 # existing useQueryHook
-  const { data, isLoading, isError } = useQuery('todos', () => fetch('/todos'));
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ['todos'],
+    queryFn: fetchTodoList
+  });
 
 # jotai-tanstack-query
   const todosAtom = atomWithQuery(() => ({
