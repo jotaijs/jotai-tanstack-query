@@ -35,13 +35,13 @@ it('suspense basic, suspends', async () => {
 
   const { findByText } = render(
     <StrictMode>
-      <Suspense fallback="loading">
+      <Suspense fallback="Loading...">
         <Counter />
       </Suspense>
     </StrictMode>
   )
 
-  await findByText('loading')
+  await findByText('Loading...')
   resolve()
   await findByText('count: 0')
 })
@@ -458,4 +458,81 @@ it('on reset, throws suspense', async () => {
   await findByText('loading')
   resolve()
   await findByText('count: 2')
+})
+
+// https://github.com/jotaijs/jotai-tanstack-query/pull/40
+it(`ensure that setQueryData for an inactive query updates its atom state`, async () => {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnMount: false,
+      },
+    },
+  })
+
+  const extraKey = 'uniqueKey'
+  const pageAtom = atom(1)
+
+  const queryFn = jest.fn(() => {
+    return Promise.resolve('John Doe')
+  })
+
+  const userAtom = atomWithSuspenseQuery(
+    () => {
+      return {
+        queryKey: [extraKey],
+        queryFn: async () => {
+          const name = await queryFn()
+          return { response: { name } }
+        },
+      }
+    },
+    () => queryClient
+  )
+
+  const User = () => {
+    const [
+      {
+        data: {
+          response: { name },
+        },
+      },
+    ] = useAtom(userAtom)
+
+    return <>Name: {name}</>
+  }
+
+  const Controls = () => {
+    const [, setPage] = useAtom(pageAtom)
+    return (
+      <>
+        <button onClick={() => setPage(1)}>Set page 1</button>
+        <button onClick={() => setPage(2)}>Set page 2</button>
+      </>
+    )
+  }
+
+  const App = () => {
+    const [page] = useAtom(pageAtom)
+    return (
+      <>
+        <Suspense fallback="loading">{page === 1 && <User />}</Suspense>
+        <Controls />
+      </>
+    )
+  }
+
+  const { findByText } = render(
+    <StrictMode>
+      <App />
+    </StrictMode>
+  )
+
+  await findByText('loading')
+  await findByText('Name: John Doe')
+  fireEvent.click(await findByText('Set page 2'))
+  queryClient.setQueryData([extraKey], { response: { name: 'Alex Smith' } })
+  fireEvent.click(await findByText('Set page 1'))
+  await expect(() => findByText('loading')).rejects.toThrow()
+  await findByText('Name: Alex Smith')
 })
