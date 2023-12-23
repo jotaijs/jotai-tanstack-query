@@ -24,8 +24,6 @@ export function atomWithInfiniteQuery<
   ) => InfiniteQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): Atom<InfiniteQueryObserverResult<TData, TError>> {
-  const IN_RENDER = Symbol()
-
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
@@ -46,6 +44,8 @@ export function atomWithInfiniteQuery<
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
     const options = getOptions(get)
+    const cache = get(observerCacheAtom)
+    const cachedObserver = cache.get(client)
     const dOptions = client.defaultQueryOptions(
       options
     ) as DefaultedInfiniteQueryObserverOptions<
@@ -59,6 +59,10 @@ export function atomWithInfiniteQuery<
 
     dOptions._optimisticResults = 'optimistic'
 
+    if (cachedObserver) {
+      cachedObserver.setOptions(dOptions, { listeners: false })
+    }
+
     return dOptions
   })
   if (process.env.NODE_ENV !== 'production') {
@@ -70,15 +74,8 @@ export function atomWithInfiniteQuery<
 
     const observerCache = get(observerCacheAtom)
 
-    const observer = observerCache.get(client)
-
-    if (observer) {
-      ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options, { listeners: false })
-      delete (observer as any)[IN_RENDER]
-
-      return observer
-    }
+    const cachedObserver = observerCache.get(client)
+    if (cachedObserver) return cachedObserver
 
     const newObserver = new InfiniteQueryObserver(client, options)
     observerCache.set(client, newObserver)

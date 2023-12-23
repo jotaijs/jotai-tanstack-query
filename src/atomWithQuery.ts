@@ -25,8 +25,6 @@ export function atomWithQuery<
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): Atom<QueryObserverResult<TData, TError>> {
-  const IN_RENDER = Symbol()
-
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
@@ -41,9 +39,15 @@ export function atomWithQuery<
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
     const options = getOptions(get)
+    const cache = get(observerCacheAtom)
+    const cachedObserver = cache.get(client)
     const dOptions = client.defaultQueryOptions(options)
 
     dOptions._optimisticResults = 'optimistic'
+
+    if (cachedObserver) {
+      cachedObserver.setOptions(dOptions, { listeners: false })
+    }
 
     return dOptions
   })
@@ -57,15 +61,9 @@ export function atomWithQuery<
 
     const observerCache = get(observerCacheAtom)
 
-    const observer = observerCache.get(client)
+    const cachedObserver = observerCache.get(client)
 
-    if (observer) {
-      ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options)
-      delete (observer as any)[IN_RENDER]
-
-      return observer
-    }
+    if (cachedObserver) return cachedObserver
 
     const newObserver = new QueryObserver(client, options)
     observerCache.set(client, newObserver)

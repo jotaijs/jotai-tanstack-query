@@ -1,11 +1,11 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
-import { atomWithQuery } from 'jotai-tanstack-query'
+import { atomWithSuspenseQuery } from 'jotai-tanstack-query'
 
 const idAtom = atom(1)
 
-const userAtom = atomWithQuery<object>((get) => ({
+const userAtom = atomWithSuspenseQuery<object>((get) => ({
   queryKey: ['users', get(idAtom)],
   queryFn: async ({ queryKey: [, id] }) => {
     const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
@@ -14,10 +14,7 @@ const userAtom = atomWithQuery<object>((get) => ({
 }))
 
 const UserData = () => {
-  const [{ data, isPending, isError }] = useAtom(userAtom)
-
-  if (isPending) return <div>Loading...</div>
-  if (isError) return <div>Error</div>
+  const [{ data }] = useAtom(userAtom)
 
   return <div>{JSON.stringify(data)}</div>
 }
@@ -40,7 +37,9 @@ const Controls = () => {
 const App = () => (
   <>
     <Controls />
-    <UserData />
+    <Suspense fallback="loading">
+      <UserData />
+    </Suspense>
   </>
 )
 
