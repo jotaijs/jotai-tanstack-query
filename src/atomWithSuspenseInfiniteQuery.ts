@@ -30,8 +30,6 @@ export const atomWithSuspenseInfiniteQuery = <
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ): Atom<Promise<InfiniteQueryObserverSuccessResult<TData, TError>>> => {
-  const IN_RENDER = Symbol()
-
   const observerCacheAtom = atom(
     () =>
       new WeakMap<
@@ -53,6 +51,8 @@ export const atomWithSuspenseInfiniteQuery = <
   const optionsAtom = atom((get) => {
     const client = getQueryClient(get)
     const options = getOptions(get)
+    const cache = get(observerCacheAtom)
+    const cachedObserver = cache.get(client)
     const dOptions = client.defaultQueryOptions(
       options
     ) as DefaultedInfiniteQueryObserverOptions<
@@ -66,6 +66,14 @@ export const atomWithSuspenseInfiniteQuery = <
 
     dOptions._optimisticResults = 'optimistic'
 
+    if (typeof dOptions.staleTime !== 'number') {
+      dOptions.staleTime = 1000
+    }
+
+    if (cachedObserver) {
+      cachedObserver.setOptions(dOptions, { listeners: false })
+    }
+
     return dOptions
   })
   if (process.env.NODE_ENV !== 'production') {
@@ -78,15 +86,9 @@ export const atomWithSuspenseInfiniteQuery = <
 
     const observerCache = get(observerCacheAtom)
 
-    const observer = observerCache.get(client)
+    const cachedObserver = observerCache.get(client)
 
-    if (observer) {
-      ;(observer as any)[IN_RENDER] = true
-      observer.setOptions(options)
-      delete (observer as any)[IN_RENDER]
-
-      return observer
-    }
+    if (cachedObserver) return cachedObserver
 
     const newObserver = new InfiniteQueryObserver(client, options)
     observerCache.set(client, newObserver)

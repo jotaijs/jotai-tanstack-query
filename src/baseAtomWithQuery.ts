@@ -139,7 +139,6 @@ export function baseAtomWithQuery<
   ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
-  const IN_RENDER = Symbol()
   const resetAtom = atom(0)
   if (process.env.NODE_ENV !== 'production') {
     resetAtom.debugPrivate = true
@@ -149,13 +148,7 @@ export function baseAtomWithQuery<
     const observer = getObserver(get)
     const source = make<QueryObserverResult<TData, TError>>(({ next }) => {
       const callback = (result: QueryObserverResult<TData, TError>) => {
-        const notifyResult = () => next(result)
-
-        if ((observer as any)[IN_RENDER]) {
-          Promise.resolve().then(notifyResult)
-        } else {
-          notifyResult()
-        }
+        next(result)
       }
 
       return observer.subscribe(callback)
@@ -204,12 +197,11 @@ export function baseAtomWithQuery<
     }
 
     get(resetAtom)
-    const resultAtom = get(dataAtom)
-    const result = get(resultAtom)
+    get(get(dataAtom))
 
-    const optimisticResult = observer.getOptimisticResult(options)
+    const result = observer.getOptimisticResult(options)
 
-    if (shouldSuspend(options, optimisticResult, false)) {
+    if (shouldSuspend(options, result, false)) {
       return observer.fetchOptimistic(options)
     }
 
