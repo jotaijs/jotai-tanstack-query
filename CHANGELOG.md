@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+## [0.8.1] - 2023-12-23
+### Changed
+- fix: add default staletime for suspense atoms
+- fix: suspense example
+
 ## [0.8.0] - 2023-12-09
 ### Added
 - breaking: update atom api to resemble tanstack/query api
