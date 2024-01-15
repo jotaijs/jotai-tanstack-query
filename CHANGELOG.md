@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.2] - 2024-01-15
+### Changed
+- fix: update jotai peer dependency to v2
+
 ## [0.8.1] - 2023-12-23
 ### Changed
 - fix: add default staletime for suspense atoms

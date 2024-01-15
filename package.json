@@ -1,7 +1,7 @@
 {
   "name": "jotai-tanstack-query",
   "description": "👻🌺",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "author": "Daishi Kato",
   "contributors": [
     "Mohammad Bagher Abiat",
@@ -91,7 +91,7 @@
   },
   "peerDependencies": {
     "@tanstack/query-core": "*",
-    "jotai": ">=1.11.0",
+    "jotai": ">=2.0.0",
     "wonka": "^6.3.4"
   }
 }
