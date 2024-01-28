@@ -1,179 +1,113 @@
 import {
-  DefaultError,
-  DefaultedInfiniteQueryObserverOptions,
-  DefaultedQueryObserverOptions,
-  InfiniteQueryObserver,
-  InfiniteQueryObserverResult,
-  InfiniteQueryObserverSuccessResult,
   QueryClient,
   QueryKey,
   QueryObserver,
   QueryObserverResult,
-  QueryObserverSuccessResult,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
-import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
-import { getHasError, shouldSuspend } from './utils'
+import { BaseAtomWithQueryOptions } from './types'
+import { ensureStaleTime, getHasError, shouldSuspend } from './utils'
 
 export function baseAtomWithQuery<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
+  TQueryFnData,
+  TError,
+  TData,
+  TQueryData,
+  TQueryKey extends QueryKey,
 >(
   getOptions: (
     get: Getter
-  ) => DefaultedQueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
-  > & { suspense: true; enabled: true },
-  getObserver: (
-    get: Getter
-  ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-  getQueryClient?: (get: Getter) => QueryClient
-): Atom<Promise<QueryObserverSuccessResult<TData, TError>>>
-export function baseAtomWithQuery<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
->(
-  getOptions: (
-    get: Getter
-  ) => DefaultedQueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
-  > & { suspense: false },
-  getObserver: (
-    get: Getter
-  ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-  getQueryClient?: (get: Getter) => QueryClient
-): Atom<QueryObserverResult<TData, TError>>
-export function baseAtomWithQuery<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
->(
-  getOptions: (
-    get: Getter
-  ) => DefaultedInfiniteQueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey,
-    TPageParam
-  > & { suspense: true; enabled: true },
-  getObserver: (
-    get: Getter
-  ) => InfiniteQueryObserver<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryFnData,
-    TQueryKey,
-    TPageParam
-  >,
-  getQueryClient?: (get: Getter) => QueryClient
-): Atom<Promise<InfiniteQueryObserverSuccessResult<TData, TError>>>
-export function baseAtomWithQuery<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
->(
-  getOptions: (
-    get: Getter
-  ) => DefaultedInfiniteQueryObserverOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey,
-    TPageParam
-  > & { suspense: false },
-  getObserver: (
-    get: Getter
-  ) => InfiniteQueryObserver<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryFnData,
-    TQueryKey,
-    TPageParam
-  >,
-  getQueryClient?: (get: Getter) => QueryClient
-): Atom<InfiniteQueryObserverResult<TData, TError>>
-export function baseAtomWithQuery<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
->(
-  getOptions: (
-    get: Getter
-  ) => DefaultedQueryObserverOptions<
+  ) => BaseAtomWithQueryOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryData,
     TQueryKey
   >,
-  getObserver: (
-    get: Getter
-  ) => QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+  Observer: typeof QueryObserver,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-) {
+): Atom<
+  | QueryObserverResult<TData, TError>
+  | Promise<QueryObserverResult<TData, TError>>
+> {
   const resetAtom = atom(0)
   if (process.env.NODE_ENV !== 'production') {
     resetAtom.debugPrivate = true
   }
 
-  const observableAtom = atom((get) => {
-    const observer = getObserver(get)
-    const source = make<QueryObserverResult<TData, TError>>(({ next }) => {
-      const callback = (result: QueryObserverResult<TData, TError>) => {
-        next(result)
-      }
+  const clientAtom = atom(getQueryClient)
+  if (process.env.NODE_ENV !== 'production') {
+    clientAtom.debugPrivate = true
+  }
 
-      return observer.subscribe(callback)
-    })
-    return pipe(source, toObservable)
+  const observerCacheAtom = atom(
+    () =>
+      new WeakMap<
+        QueryClient,
+        QueryObserver<TQueryFnData, TError, TData, TQueryData, TQueryKey>
+      >()
+  )
+  if (process.env.NODE_ENV !== 'production') {
+    observerCacheAtom.debugPrivate = true
+  }
+
+  const defaultedOptionsAtom = atom((get) => {
+    const client = get(clientAtom)
+    const options = getOptions(get)
+    const defaultedOptions = client.defaultQueryOptions(options)
+
+    const cache = get(observerCacheAtom)
+    const cachedObserver = cache.get(client)
+
+    defaultedOptions._optimisticResults = 'optimistic'
+
+    if (cachedObserver) {
+      cachedObserver.setOptions(defaultedOptions, {
+        listeners: false,
+      })
+    }
+
+    return ensureStaleTime(defaultedOptions)
   })
   if (process.env.NODE_ENV !== 'production') {
-    observableAtom.debugPrivate = true
+    defaultedOptionsAtom.debugPrivate = true
+  }
+
+  const observerAtom = atom((get) => {
+    const client = get(clientAtom)
+    const defaultedOptions = get(defaultedOptionsAtom)
+
+    const observerCache = get(observerCacheAtom)
+
+    const cachedObserver = observerCache.get(client)
+
+    if (cachedObserver) return cachedObserver
+
+    const newObserver = new Observer(client, defaultedOptions)
+    observerCache.set(client, newObserver)
+
+    return newObserver
+  })
+  if (process.env.NODE_ENV !== 'production') {
+    observerAtom.debugPrivate = true
   }
 
   const dataAtom = atom((get) => {
-    const observer = getObserver(get)
-    const observable = get(observableAtom)
+    const observer = get(observerAtom)
 
     const currentResult = observer.getCurrentResult()
+
     const resultAtom = atom(currentResult)
     if (process.env.NODE_ENV !== 'production') {
       resultAtom.debugPrivate = true
     }
 
     resultAtom.onMount = (set) => {
-      const { unsubscribe } = observable.subscribe((state) => {
+      const unsubscribe = observer.subscribe((state) => {
         set(state)
       })
-      return () => unsubscribe()
+      return unsubscribe
     }
 
     return resultAtom
@@ -183,8 +117,8 @@ export function baseAtomWithQuery<
   }
 
   return atom((get) => {
-    const observer = getObserver(get)
-    const options = getOptions(get)
+    const observer = get(observerAtom)
+    const defaultedOptions = get(defaultedOptionsAtom)
 
     const client = getQueryClient(get)
 
@@ -199,17 +133,17 @@ export function baseAtomWithQuery<
     get(resetAtom)
     get(get(dataAtom))
 
-    const result = observer.getOptimisticResult(options)
+    const result = observer.getOptimisticResult(defaultedOptions)
 
-    if (shouldSuspend(options, result, false)) {
-      return observer.fetchOptimistic(options)
+    if (shouldSuspend(defaultedOptions, result, false)) {
+      return observer.fetchOptimistic(defaultedOptions)
     }
 
     if (
       getHasError({
         result,
         query: observer.getCurrentQuery(),
-        throwOnError: options.throwOnError,
+        throwOnError: defaultedOptions.throwOnError,
       })
     ) {
       throw result.error
