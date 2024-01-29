@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.3] - 2024-01-29
+### Changed
+- fix: update types
+
 ## [0.8.2] - 2024-01-15
 ### Changed
 - fix: update jotai peer dependency to v2
