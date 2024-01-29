@@ -1,16 +1,21 @@
-import { InfiniteQueryObserver, QueryClient } from '@tanstack/query-core'
-import type {
+import {
   DefaultError,
-  DefaultedInfiniteQueryObserverOptions,
   InfiniteData,
-  InfiniteQueryObserverOptions,
-  InfiniteQueryObserverResult,
+  InfiniteQueryObserver,
+  QueryClient,
   QueryKey,
-  WithRequired,
+  QueryObserver,
 } from '@tanstack/query-core'
-import { Atom, type Getter, atom } from 'jotai/vanilla'
+import { Getter } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
+import {
+  AtomWithInfiniteQueryOptions,
+  AtomWithInfiniteQueryResult,
+  DefinedAtomWithInfiniteQueryResult,
+  DefinedInitialDataInfiniteOptions,
+  UndefinedInitialDataInfiniteOptions,
+} from './types'
 
 export function atomWithInfiniteQuery<
   TQueryFnData,
@@ -21,102 +26,59 @@ export function atomWithInfiniteQuery<
 >(
   getOptions: (
     get: Getter
-  ) => InfiniteQueryOptions<TQueryFnData, TError, TData, TQueryKey, TPageParam>,
-  getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): Atom<InfiniteQueryObserverResult<TData, TError>> {
-  const observerCacheAtom = atom(
-    () =>
-      new WeakMap<
-        QueryClient,
-        InfiniteQueryObserver<
-          TQueryFnData,
-          TError,
-          TData,
-          TQueryFnData,
-          TQueryKey,
-          TPageParam
-        >
-      >()
-  )
-  if (process.env.NODE_ENV !== 'production') {
-    observerCacheAtom.debugPrivate = true
-  }
-  const optionsAtom = atom((get) => {
-    const client = getQueryClient(get)
-    const options = getOptions(get)
-    const cache = get(observerCacheAtom)
-    const cachedObserver = cache.get(client)
-    const dOptions = client.defaultQueryOptions(
-      options
-    ) as DefaultedInfiniteQueryObserverOptions<
-      TQueryFnData,
-      TError,
-      TData,
-      TQueryFnData,
-      TQueryKey,
-      TPageParam
-    >
-
-    dOptions._optimisticResults = 'optimistic'
-
-    if (cachedObserver) {
-      cachedObserver.setOptions(dOptions, { listeners: false })
-    }
-
-    return dOptions
-  })
-  if (process.env.NODE_ENV !== 'production') {
-    optionsAtom.debugPrivate = true
-  }
-  const observerAtom = atom((get) => {
-    const options = get(optionsAtom)
-    const client = getQueryClient(get)
-
-    const observerCache = get(observerCacheAtom)
-
-    const cachedObserver = observerCache.get(client)
-    if (cachedObserver) return cachedObserver
-
-    const newObserver = new InfiniteQueryObserver(client, options)
-    observerCache.set(client, newObserver)
-
-    return newObserver
-  })
-
-  return baseAtomWithQuery<
+  ) => UndefinedInitialDataInfiniteOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryKey,
+    TPageParam
+  >,
+  getQueryClient?: (get: Getter) => QueryClient
+): AtomWithInfiniteQueryResult<TData, TError>
+export function atomWithInfiniteQuery<
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+>(
+  getOptions: (
+    get: Getter
+  ) => DefinedInitialDataInfiniteOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryKey,
+    TPageParam
+  >,
+  getQueryClient?: (get: Getter) => QueryClient
+): DefinedAtomWithInfiniteQueryResult<TData, TError>
+export function atomWithInfiniteQuery<
+  TQueryFnData,
+  TError = DefaultError,
+  TData = InfiniteData<TQueryFnData>,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+>(
+  getOptions: (
+    get: Getter
+  ) => AtomWithInfiniteQueryOptions<
     TQueryFnData,
     TError,
     TData,
     TQueryFnData,
     TQueryKey,
     TPageParam
-  >(
-    (get) => ({
-      ...get(optionsAtom),
-      suspense: false,
-    }),
-    (get) => get(observerAtom),
+  >,
+  getQueryClient?: (get: Getter) => QueryClient
+): AtomWithInfiniteQueryResult<TData, TError>
+export function atomWithInfiniteQuery(
+  getOptions: (get: Getter) => AtomWithInfiniteQueryOptions,
+  getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
+) {
+  return baseAtomWithQuery(
+    getOptions,
+    InfiniteQueryObserver as typeof QueryObserver,
     getQueryClient
   )
 }
-
-interface InfiniteQueryOptions<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = InfiniteData<TQueryFnData>,
-  TQueryKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
-> extends WithRequired<
-    Omit<
-      InfiniteQueryObserverOptions<
-        TQueryFnData,
-        TError,
-        TData,
-        TQueryFnData,
-        TQueryKey,
-        TPageParam
-      >,
-      'suspense'
-    >,
-    'queryKey'
-  > {}

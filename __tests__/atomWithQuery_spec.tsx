@@ -390,7 +390,10 @@ it('query with enabled (#500)', async () => {
 })
 
 it('query with initialData test', async () => {
-  const mockFetch = jest.fn((response) => ({ response }))
+  const mockFetch = jest.fn((response: { count: number }) => ({
+    response,
+  }))
+
   let resolve = () => {}
 
   const countAtom = atomWithQuery(() => ({
@@ -402,18 +405,14 @@ it('query with initialData test', async () => {
     initialData: { response: { count: 0 } },
   }))
   const Counter = () => {
-    const [countData] = useAtom(countAtom)
-    const { data, isPending, isError } = countData
+    const [
+      {
+        data: {
+          response: { count },
+        },
+      },
+    ] = useAtom(countAtom)
 
-    if (isPending) {
-      return <>loading</>
-    }
-
-    if (isError) {
-      return <>errorred</>
-    }
-
-    const count = data.response.count
     return (
       <>
         <div>count: {count}</div>

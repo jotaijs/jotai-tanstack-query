@@ -1,4 +1,5 @@
 import type {
+  DefaultError,
   DefaultedQueryObserverOptions,
   Query,
   QueryKey,
@@ -53,4 +54,29 @@ export function shouldThrowError<T extends (...args: any[]) => boolean>(
   }
 
   return !!throwOnError
+}
+
+export const defaultThrowOnError = <
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+>(
+  _error: TError,
+  query: Query<TQueryFnData, TError, TData, TQueryKey>
+) => typeof query.state.data === 'undefined'
+
+export const ensureStaleTime = (
+  defaultedOptions: DefaultedQueryObserverOptions<any, any, any, any, any>
+) => {
+  if (defaultedOptions.suspense) {
+    if (typeof defaultedOptions.staleTime !== 'number') {
+      return {
+        ...defaultedOptions,
+        staleTime: 1000,
+      }
+    }
+  }
+
+  return defaultedOptions
 }

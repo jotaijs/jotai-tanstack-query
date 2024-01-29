@@ -18,7 +18,7 @@ afterEach(() => {
 it('suspense basic, suspends', async () => {
   let resolve = () => {}
   const countAtom = atomWithSuspenseQuery(() => ({
-    queryKey: ['test1'],
+    queryKey: ['test1', 'suspends'],
     queryFn: async () => {
       await new Promise<void>((r) => (resolve = r))
       return { response: { count: 0 } }
