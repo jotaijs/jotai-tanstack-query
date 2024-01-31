@@ -13,7 +13,6 @@ import {
   QueryObserverResult,
   WithRequired,
 } from '@tanstack/query-core'
-import { Atom } from 'jotai'
 
 type Override<A, B> = { [K in keyof A]: K extends keyof B ? B[K] : A[K] }
 
@@ -33,14 +32,13 @@ export type MutateAsyncFunction<
   TContext = unknown,
 > = QueryMutateFunction<TData, TError, TVariables, TContext>
 
-export type AtomWithMutationResult<TData, TError, TVariables, TContext> = Atom<
+export type AtomWithMutationResult<TData, TError, TVariables, TContext> =
   Override<
     MutationObserverResult<TData, TError, TVariables, TContext>,
     { mutate: MutateFunction<TData, TError, TVariables, TContext> }
   > & {
     mutateAsync: MutateAsyncFunction<TData, TError, TVariables, TContext>
   }
->
 
 export interface MutationOptions<
   TData = unknown,
@@ -133,42 +131,40 @@ export interface AtomWithSuspenseInfiniteQueryOptions<
     'enabled' | 'throwOnError' | 'placeholderData'
   > {}
 
-export type AtomWithQueryResult<TData = unknown, TError = DefaultError> = Atom<
-  QueryObserverResult<TData, TError>
->
+export type AtomWithQueryResult<
+  TData = unknown,
+  TError = DefaultError,
+> = QueryObserverResult<TData, TError>
 
 export type DefinedAtomWithQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = Atom<DefinedQueryObserverResult<TData, TError>>
+> = DefinedQueryObserverResult<TData, TError>
 
 export type AtomWithSuspenseQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = Atom<
+> =
   | Omit<DefinedQueryObserverResult<TData, TError>, 'isPlaceholderData'>
   | Promise<
       Omit<DefinedQueryObserverResult<TData, TError>, 'isPlaceholderData'>
     >
->
 
 export type AtomWithInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = Atom<InfiniteQueryObserverResult<TData, TError>>
+> = InfiniteQueryObserverResult<TData, TError>
 
 export type DefinedAtomWithInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = Atom<DefinedInfiniteQueryObserverResult<TData, TError>>
+> = DefinedInfiniteQueryObserverResult<TData, TError>
 
 export type AtomWithSuspenseInfiniteQueryResult<
   TData = unknown,
   TError = DefaultError,
-> = Atom<
-  Promise<
-    Omit<DefinedInfiniteQueryObserverResult<TData, TError>, 'isPlaceholderData'>
-  >
+> = Promise<
+  Omit<DefinedInfiniteQueryObserverResult<TData, TError>, 'isPlaceholderData'>
 >
 
 export type UndefinedInitialDataOptions<

@@ -4,7 +4,7 @@ import {
   QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
-import { Getter } from 'jotai'
+import { Atom, Getter } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
 import {
@@ -25,7 +25,7 @@ export function atomWithQuery<
     get: Getter
   ) => UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>,
   getQueryClient?: (get: Getter) => QueryClient
-): AtomWithQueryResult<TData, TError>
+): Atom<AtomWithQueryResult<TData, TError>>
 export function atomWithQuery<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -36,7 +36,7 @@ export function atomWithQuery<
     get: Getter
   ) => DefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>,
   getQueryClient?: (get: Getter) => QueryClient
-): DefinedAtomWithQueryResult<TData, TError>
+): Atom<DefinedAtomWithQueryResult<TData, TError>>
 export function atomWithQuery<
   TQueryFnData = unknown,
   TError = DefaultError,
@@ -47,7 +47,7 @@ export function atomWithQuery<
     get: Getter
   ) => AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
   getQueryClient?: (get: Getter) => QueryClient
-): AtomWithQueryResult<TData, TError>
+): Atom<AtomWithQueryResult<TData, TError>>
 export function atomWithQuery(
   getOptions: (get: Getter) => AtomWithQueryOptions,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
