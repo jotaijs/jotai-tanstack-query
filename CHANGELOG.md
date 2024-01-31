@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.4] - 2024-01-31
+### Changed
+- fix: fix generics
+
 ## [0.8.3] - 2024-01-29
 ### Changed
 - fix: update types
