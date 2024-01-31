@@ -4,7 +4,7 @@ import {
   MutationOptions,
   QueryClient,
 } from '@tanstack/query-core'
-import { Getter, atom } from 'jotai'
+import { Atom, Getter, atom } from 'jotai'
 import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
 import { AtomWithMutationResult, MutateFunction } from './types'
@@ -20,7 +20,7 @@ export function atomWithMutation<
     get: Getter
   ) => MutationOptions<TData, TError, TVariables, TContext>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): AtomWithMutationResult<TData, TError, TVariables, TContext> {
+): Atom<AtomWithMutationResult<TData, TError, TVariables, TContext>> {
   const IN_RENDER = Symbol()
 
   const optionsAtom = atom((get) => {

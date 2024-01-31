@@ -4,7 +4,7 @@ import {
   QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
-import { Getter, atom } from 'jotai'
+import { Atom, Getter, atom } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
 import {
@@ -23,7 +23,7 @@ export function atomWithSuspenseQuery<
     get: Getter
   ) => AtomWithSuspenseQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): AtomWithSuspenseQueryResult<TData, TError> {
+): Atom<AtomWithSuspenseQueryResult<TData, TError>> {
   const suspenseOptions = atom((get) => {
     const options = getOptions(get)
     return {
@@ -38,5 +38,5 @@ export function atomWithSuspenseQuery<
     (get: Getter) => get(suspenseOptions),
     QueryObserver,
     getQueryClient
-  ) as AtomWithSuspenseQueryResult<TData, TError>
+  ) as Atom<AtomWithSuspenseQueryResult<TData, TError>>
 }
