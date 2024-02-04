@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.5] - 2024-02-04
+### Changed
+- fix: include types.ts in build
+
 ## [0.8.4] - 2024-01-31
 ### Changed
 - fix: fix generics
