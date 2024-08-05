@@ -86,12 +86,10 @@
     "typescript": "^5.2.2",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^4.15.1",
-    "wonka": "^6.3.4"
+    "webpack-dev-server": "^4.15.1"
   },
   "peerDependencies": {
     "@tanstack/query-core": "*",
-    "jotai": ">=2.0.0",
-    "wonka": "^6.3.4"
+    "jotai": ">=2.0.0"
   }
 }

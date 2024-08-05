@@ -1,11 +1,9 @@
 import {
   MutationObserver,
-  type MutationObserverResult,
   MutationOptions,
   QueryClient,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
-import { make, pipe, toObservable } from 'wonka'
 import { queryClientAtom } from './queryClientAtom'
 import { AtomWithMutationResult, MutateFunction } from './types'
 import { shouldThrowError } from './utils'
@@ -67,37 +65,15 @@ export function atomWithMutation<
     observerAtom.debugPrivate = true
   }
 
-  const observableAtom = atom((get) => {
-    const observer = get(observerAtom)
-    const source = make<
-      MutationObserverResult<TData, TError, TVariables, TContext>
-    >(({ next }) => {
-      const callback = (
-        result: MutationObserverResult<TData, TError, TVariables, TContext>
-      ) => {
-        const notifyResult = () => next(result)
-
-        if ((observer as any)[IN_RENDER]) {
-          Promise.resolve().then(notifyResult)
-        } else {
-          notifyResult()
-        }
-      }
-
-      return observer.subscribe(callback)
-    })
-    return pipe(source, toObservable)
-  })
-
   const dataAtom = atom((get) => {
     const observer = get(observerAtom)
-    const observable = get(observableAtom)
+    // const observable = get(observableAtom)
 
     const currentResult = observer.getCurrentResult()
     const resultAtom = atom(currentResult)
 
     resultAtom.onMount = (set) => {
-      const { unsubscribe } = observable.subscribe((state) => {
+      const unsubscribe = observer.subscribe((state) => {
         set(state)
       })
       return () => {
