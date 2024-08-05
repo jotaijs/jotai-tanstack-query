@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.6] - 2024-08-05
+### Changed
+- fix: remove wonka as a peer dependency
+
 ## [0.8.5] - 2024-02-04
 ### Changed
 - fix: include types.ts in build
