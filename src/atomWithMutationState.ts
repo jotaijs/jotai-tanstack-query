@@ -46,9 +46,10 @@ export const atomWithMutationState = <TResult = MutationState>(
 
     const mutationCache = queryClient.getMutationCache()
     resultsAtom.onMount = (set) => {
-      mutationCache.subscribe(() => {
+      const unsubscribe = mutationCache.subscribe(() => {
         set(getResult(getQueryClient(get).getMutationCache(), getOptions(get)))
       })
+      return unsubscribe
     }
   })
   if (process.env.NODE_ENV !== 'production') {
