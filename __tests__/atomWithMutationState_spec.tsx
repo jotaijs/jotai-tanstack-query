@@ -33,7 +33,12 @@ it('atomWithMutationState multiple', async () => {
     () => client
   )
 
-  const mutationStateAtom = atomWithMutationState(
+  const pendingMutationStateAtom = atomWithMutationState(
+    () => ({ filters: { mutationKey: ['test-atom'], status: 'pending' } }),
+    () => client
+  )
+
+  const allMutationStatesAtom = atomWithMutationState(
     () => ({ filters: { mutationKey: ['test-atom'] } }),
     () => client
   )
@@ -41,11 +46,13 @@ it('atomWithMutationState multiple', async () => {
   function App() {
     const [{ mutate: mutate1 }] = useAtom(mutateAtom1)
     const [{ mutate: mutate2 }] = useAtom(mutateAtom2)
-    const [mutations] = useAtom(mutationStateAtom)
+    const [pendingMutationState] = useAtom(pendingMutationStateAtom)
+    const [allMutationStates] = useAtom(allMutationStatesAtom)
 
     return (
       <div>
-        <p>mutationCount: {mutations.length}</p>
+        <p>all: {allMutationStates.length}</p>
+        <p>pending: {pendingMutationState.length}</p>
         <button
           onClick={() => {
             mutate1(1)
@@ -63,11 +70,15 @@ it('atomWithMutationState multiple', async () => {
     </Provider>
   )
 
-  await findByText('mutationCount: 0')
+  await findByText('all: 0')
+  await findByText('pending: 0')
   fireEvent.click(getByText('mutate'))
-  await findByText('mutationCount: 2')
+  await findByText('all: 2')
+  await findByText('pending: 2')
   resolve1?.()
-  await findByText('mutationCount: 1')
+  await findByText('all: 2')
+  await findByText('pending: 1')
   resolve2?.()
-  await findByText('mutationCount: 0')
+  await findByText('all: 2')
+  await findByText('pending: 0')
 })
