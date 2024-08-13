@@ -77,7 +77,7 @@ export function atomWithMutation<
         set(state)
       })
       return () => {
-        unsubscribe
+        unsubscribe()
         observer.reset()
       }
     }
