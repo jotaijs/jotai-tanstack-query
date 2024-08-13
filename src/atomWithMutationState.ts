@@ -21,7 +21,7 @@ function getResult<TResult = MutationState>(
   options: MutationStateOptions<TResult>
 ): Array<TResult> {
   return mutationCache
-    .findAll({ ...options.filters, status: 'pending' })
+    .findAll(options.filters)
     .map(
       (mutation): TResult =>
         (options.select
