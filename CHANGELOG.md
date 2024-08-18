@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.8.7] - 2024-08-18
+### Changed
+- add: batch calls to improve perf
+- fix: return appropriate cleanup functions
+- fix: cleanup - remove unused code
+
 ## [0.8.6] - 2024-08-05
 ### Changed
 - fix: remove wonka as a peer dependency
