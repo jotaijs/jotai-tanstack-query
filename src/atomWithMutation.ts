@@ -2,6 +2,7 @@ import {
   MutationObserver,
   MutationOptions,
   QueryClient,
+  notifyManager,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
 import { queryClientAtom } from './queryClientAtom'
@@ -67,17 +68,13 @@ export function atomWithMutation<
 
   const dataAtom = atom((get) => {
     const observer = get(observerAtom)
-    // const observable = get(observableAtom)
 
     const currentResult = observer.getCurrentResult()
     const resultAtom = atom(currentResult)
 
     resultAtom.onMount = (set) => {
-      const unsubscribe = observer.subscribe((state) => {
-        set(state)
-      })
+      observer.subscribe(notifyManager.batchCalls(set))
       return () => {
-        unsubscribe
         observer.reset()
       }
     }

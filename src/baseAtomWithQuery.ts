@@ -3,6 +3,7 @@ import {
   QueryKey,
   QueryObserver,
   QueryObserverResult,
+  notifyManager,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
 import { queryClientAtom } from './queryClientAtom'
@@ -31,11 +32,6 @@ export function baseAtomWithQuery<
   | QueryObserverResult<TData, TError>
   | Promise<QueryObserverResult<TData, TError>>
 > {
-  const resetAtom = atom(0)
-  if (process.env.NODE_ENV !== 'production') {
-    resetAtom.debugPrivate = true
-  }
-
   const clientAtom = atom(getQueryClient)
   if (process.env.NODE_ENV !== 'production') {
     clientAtom.debugPrivate = true
@@ -94,20 +90,24 @@ export function baseAtomWithQuery<
   }
 
   const dataAtom = atom((get) => {
+    const client = getQueryClient(get)
     const observer = get(observerAtom)
+    const defaultedOptions = get(defaultedOptionsAtom)
+    const result = observer.getOptimisticResult(defaultedOptions)
 
-    const currentResult = observer.getCurrentResult()
-
-    const resultAtom = atom(currentResult)
+    const resultAtom = atom(result)
     if (process.env.NODE_ENV !== 'production') {
       resultAtom.debugPrivate = true
     }
 
     resultAtom.onMount = (set) => {
-      const unsubscribe = observer.subscribe((state) => {
-        set(state)
-      })
-      return unsubscribe
+      const unsubscribe = observer.subscribe(notifyManager.batchCalls(set))
+      return () => {
+        if (observer.getCurrentResult().isError) {
+          client.resetQueries({ queryKey: observer.getCurrentQuery().queryKey })
+        }
+        unsubscribe()
+      }
     }
 
     return resultAtom
@@ -120,20 +120,7 @@ export function baseAtomWithQuery<
     const observer = get(observerAtom)
     const defaultedOptions = get(defaultedOptionsAtom)
 
-    const client = getQueryClient(get)
-
-    resetAtom.onMount = () => {
-      return () => {
-        if (observer.getCurrentResult().isError) {
-          client.resetQueries({ queryKey: observer.getCurrentQuery().queryKey })
-        }
-      }
-    }
-
-    get(resetAtom)
-    get(get(dataAtom))
-
-    const result = observer.getOptimisticResult(defaultedOptions)
+    const result = get(get(dataAtom))
 
     if (shouldSuspend(defaultedOptions, result, false)) {
       return observer.fetchOptimistic(defaultedOptions)
