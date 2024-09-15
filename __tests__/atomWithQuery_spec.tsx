@@ -645,8 +645,8 @@ describe('error handling', () => {
   })
 })
 
-// // Test for bug described here:
-// // https://github.com/jotaijs/jotai-tanstack-query/issues/34
+// Test for bug described here:
+// https://github.com/jotaijs/jotai-tanstack-query/issues/34
 // Note: If error handling tests run after this test, they are failing. Not sure why.
 it('renews the result when the query changes and a non stale cache is available', async () => {
   const queryClient = new QueryClient({
