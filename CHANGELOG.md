@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.8.8] - 2024-09-15
+### Changed
+- fix: use query.reset on error instead of client.resetQueries.
+
 ## [0.8.7] - 2024-08-18
 ### Changed
 - add: batch calls to improve perf
