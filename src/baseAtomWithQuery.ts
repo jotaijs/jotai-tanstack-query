@@ -5,7 +5,7 @@ import {
   QueryObserverResult,
   notifyManager,
 } from '@tanstack/query-core'
-import { Atom, Getter, atom } from 'jotai'
+import { Getter, WritableAtom, atom } from 'jotai'
 import { queryClientAtom } from './queryClientAtom'
 import { BaseAtomWithQueryOptions } from './types'
 import { ensureStaleTime, getHasError, shouldSuspend } from './utils'
@@ -28,10 +28,13 @@ export function baseAtomWithQuery<
   >,
   Observer: typeof QueryObserver,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): Atom<
+): WritableAtom<
   | QueryObserverResult<TData, TError>
-  | Promise<QueryObserverResult<TData, TError>>
+  | Promise<QueryObserverResult<TData, TError>>,
+  [],
+  void
 > {
+  const refreshAtom = atom(0)
   const clientAtom = atom(getQueryClient)
   if (process.env.NODE_ENV !== 'production') {
     clientAtom.debugPrivate = true
@@ -115,26 +118,32 @@ export function baseAtomWithQuery<
     dataAtom.debugPrivate = true
   }
 
-  return atom((get) => {
-    const observer = get(observerAtom)
-    const defaultedOptions = get(defaultedOptionsAtom)
+  return atom(
+    (get) => {
+      get(refreshAtom)
+      const observer = get(observerAtom)
+      const defaultedOptions = get(defaultedOptionsAtom)
 
-    const result = get(get(dataAtom))
+      const result = get(get(dataAtom))
 
-    if (shouldSuspend(defaultedOptions, result, false)) {
-      return observer.fetchOptimistic(defaultedOptions)
+      if (shouldSuspend(defaultedOptions, result, false)) {
+        return observer.fetchOptimistic(defaultedOptions)
+      }
+
+      if (
+        getHasError({
+          result,
+          query: observer.getCurrentQuery(),
+          throwOnError: defaultedOptions.throwOnError,
+        })
+      ) {
+        throw result.error
+      }
+
+      return result
+    },
+    (_get, set) => {
+      set(refreshAtom, (c) => c + 1)
     }
-
-    if (
-      getHasError({
-        result,
-        query: observer.getCurrentQuery(),
-        throwOnError: defaultedOptions.throwOnError,
-      })
-    ) {
-      throw result.error
-    }
-
-    return result
-  })
+  )
 }

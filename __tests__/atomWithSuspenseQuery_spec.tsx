@@ -1,7 +1,7 @@
 import React, { StrictMode, Suspense } from 'react'
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
-import { atom, useAtom, useSetAtom } from 'jotai'
+import { Provider, atom, useAtom, useSetAtom } from 'jotai'
 import { ErrorBoundary } from 'react-error-boundary'
 import { atomWithSuspenseQuery } from '../src'
 
@@ -306,68 +306,82 @@ describe('error handling', () => {
     resolve()
     await findByText('errored')
   })
-  // it('can recover from error', async () => {
-  //   let count = -1
-  //   let willThrowError = false
-  //   let resolve = () => {}
-  //   const countAtom = atomWithSuspenseQuery(() => ({
-  //     queryKey: ['error test', 'count2'],
-  //     retry: false,
-  //     queryFn: async () => {
-  //       willThrowError = !willThrowError
-  //       ++count
-  //       await new Promise<void>((r) => (resolve = r))
-  //       if (willThrowError) {
-  //         throw new Error('fetch error')
-  //       }
-  //       return { response: { count } }
-  //     },
-  //   }))
-  //   const Counter = () => {
-  //     const [countData] = useAtom(countAtom)
-  //     return (
-  //       <>
-  //         <div>count: {countData.data?.response.count}</div>
-  //         <button onClick={() => countData.refetch()}>refetch</button>
-  //       </>
-  //     )
-  //   }
-  //   const App = () => {
-  //     return (
-  //       <>
-  //         <ErrorBoundary
-  //           FallbackComponent={({ resetErrorBoundary }) => {
-  //             return (
-  //               <>
-  //                 <h1>errored</h1>
-  //                 <button onClick={resetErrorBoundary}>retry</button>
-  //               </>
-  //             )
-  //           }}>
-  //           <Suspense fallback="loading">
-  //             <Counter />
-  //           </Suspense>
-  //         </ErrorBoundary>
-  //       </>
-  //     )
-  //   }
-  //   const { findByText, getByText } = render(<App />)
-  //   await findByText('loading')
-  //   resolve()
-  //   await findByText('errored')
-  //   fireEvent.click(getByText('retry'))
-  //   await findByText('loading')
-  //   resolve()
-  //   await findByText('count: 1')
-  //   fireEvent.click(getByText('refetch'))
-  //   await findByText('loading')
-  //   resolve()
-  //   await findByText('errored')
-  //   fireEvent.click(getByText('retry'))
-  //   await findByText('loading')
-  //   resolve()
-  //   await findByText('count: 3')
-  // })
+  it('can recover from error', async () => {
+    let count = -1
+    let willThrowError = false
+    let resolve = () => {}
+    const countAtom = atomWithSuspenseQuery(() => ({
+      queryKey: ['error test', 'count2'],
+      retry: false,
+      queryFn: async () => {
+        willThrowError = !willThrowError
+        ++count
+        await new Promise<void>((r) => (resolve = r))
+        if (willThrowError) {
+          throw new Error('fetch error')
+        }
+        return { response: { count } }
+      },
+      throwOnError: true,
+    }))
+    const Counter = () => {
+      const [{ data, refetch, error, isFetching }] = useAtom(countAtom)
+
+      if (error && !isFetching) {
+        throw error
+      }
+
+      return (
+        <>
+          <div>count: {data?.response.count}</div>
+          <button onClick={() => refetch()}>refetch</button>
+        </>
+      )
+    }
+
+    const FallbackComponent: React.FC<{ resetErrorBoundary: () => void }> = ({
+      resetErrorBoundary,
+    }) => {
+      const refresh = useSetAtom(countAtom)
+      return (
+        <>
+          <h1>errored</h1>
+          <button
+            onClick={() => {
+              refresh()
+              resetErrorBoundary()
+            }}>
+            retry
+          </button>
+        </>
+      )
+    }
+    const App = () => {
+      return (
+        <Provider>
+          <ErrorBoundary FallbackComponent={FallbackComponent}>
+            <Suspense fallback="loading">
+              <Counter />
+            </Suspense>
+          </ErrorBoundary>
+        </Provider>
+      )
+    }
+    const { findByText, getByText } = render(<App />)
+    await findByText('loading')
+    resolve()
+    await findByText('errored')
+    fireEvent.click(getByText('retry'))
+    await findByText('loading')
+    resolve()
+    await findByText('count: 1')
+    fireEvent.click(getByText('refetch'))
+    resolve()
+    await findByText('errored')
+    fireEvent.click(getByText('retry'))
+    resolve()
+    await findByText('count: 3')
+  })
 })
 
 it('renews the result when the query changes and a non stale cache is available', async () => {

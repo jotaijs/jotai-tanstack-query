@@ -6,7 +6,7 @@ import {
   QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
-import { Atom, Getter, atom } from 'jotai'
+import { Getter, WritableAtom, atom } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
 import {
@@ -33,7 +33,7 @@ export function atomWithSuspenseInfiniteQuery<
     TPageParam
   >,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
-): Atom<AtomWithSuspenseInfiniteQueryResult<TData, TError>> {
+): WritableAtom<AtomWithSuspenseInfiniteQueryResult<TData, TError>, [], void> {
   const suspenseOptionsAtom = atom((get) => {
     const options = getOptions(get)
     return {
@@ -48,5 +48,9 @@ export function atomWithSuspenseInfiniteQuery<
     (get: Getter) => get(suspenseOptionsAtom),
     InfiniteQueryObserver as typeof QueryObserver,
     getQueryClient
-  ) as unknown as Atom<AtomWithSuspenseInfiniteQueryResult<TData, TError>>
+  ) as unknown as WritableAtom<
+    AtomWithSuspenseInfiniteQueryResult<TData, TError>,
+    [],
+    void
+  >
 }
