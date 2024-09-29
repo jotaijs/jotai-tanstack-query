@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2024-09-29
+### Added
+- add: change atom signature to return a setter function to force re-evaluate an atom. This is to help the atom able to reevaluate when it hits an error boundary by throwing a rejected promise.
+
 ## [0.8.8] - 2024-09-15
 ### Changed
 - fix: use query.reset on error instead of client.resetQueries.
