@@ -62,9 +62,7 @@ export function baseAtomWithQuery<
     defaultedOptions._optimisticResults = 'optimistic'
 
     if (cachedObserver) {
-      cachedObserver.setOptions(defaultedOptions, {
-        listeners: false,
-      })
+      cachedObserver.setOptions(defaultedOptions)
     }
 
     return ensureStaleTime(defaultedOptions)

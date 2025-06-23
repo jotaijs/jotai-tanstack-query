@@ -94,7 +94,6 @@ export interface AtomWithInfiniteQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
-  TQueryData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 > extends WithRequired<
@@ -103,7 +102,6 @@ export interface AtomWithInfiniteQueryOptions<
         TQueryFnData,
         TError,
         TData,
-        TQueryData,
         TQueryKey,
         TPageParam
       >,
@@ -116,7 +114,6 @@ export interface AtomWithSuspenseInfiniteQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
-  TQueryData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
 > extends Omit<
@@ -124,7 +121,6 @@ export interface AtomWithSuspenseInfiniteQueryOptions<
       TQueryFnData,
       TError,
       TData,
-      TQueryData,
       TQueryKey,
       TPageParam
     >,
@@ -199,7 +195,6 @@ export type UndefinedInitialDataInfiniteOptions<
   TQueryFnData,
   TError,
   TData,
-  TQueryFnData,
   TQueryKey,
   TPageParam
 > & {
@@ -216,7 +211,6 @@ export type DefinedInitialDataInfiniteOptions<
   TQueryFnData,
   TError,
   TData,
-  TQueryFnData,
   TQueryKey,
   TPageParam
 > & {

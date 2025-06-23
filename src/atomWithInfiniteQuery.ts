@@ -66,7 +66,6 @@ export function atomWithInfiniteQuery<
     TQueryFnData,
     TError,
     TData,
-    TQueryFnData,
     TQueryKey,
     TPageParam
   >,

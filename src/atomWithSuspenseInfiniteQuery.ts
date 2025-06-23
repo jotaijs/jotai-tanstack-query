@@ -28,7 +28,6 @@ export function atomWithSuspenseInfiniteQuery<
     TQueryFnData,
     TError,
     TData,
-    TQueryFnData,
     TQueryKey,
     TPageParam
   >,
