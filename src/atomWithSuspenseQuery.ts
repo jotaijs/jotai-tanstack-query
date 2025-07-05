@@ -1,7 +1,7 @@
 import {
-  DefaultError,
+  type DefaultError,
   QueryClient,
-  QueryKey,
+  type QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'

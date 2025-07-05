@@ -1,8 +1,8 @@
 import {
   QueryClient,
-  QueryKey,
+  type QueryKey,
   QueryObserver,
-  QueryObserverResult,
+  type QueryObserverResult,
   notifyManager,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
