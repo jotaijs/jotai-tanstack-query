@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.9.1] - 2025-07-09
+### Changed
+- upgrade @tankstack/query-core to 5.81.2
+
 ## [0.9.0] - 2024-09-29
 ### Added
 - add: change atom signature to return a setter function to force re-evaluate an atom. This is to help the atom able to reevaluate when it hits an error boundary by throwing a rejected promise.
