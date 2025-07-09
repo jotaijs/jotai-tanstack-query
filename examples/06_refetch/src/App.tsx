@@ -10,7 +10,7 @@ const idAtom = atom(1)
 const userAtom = atomWithQuery((get) => ({
   queryKey: ['users', get(idAtom)],
   queryFn: async ({ queryKey: [, id] }) => {
-    const res = await fetch(`https://reqres.in/api/users/${id}`)
+    const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
     return res.json()
   },
 }))
@@ -22,8 +22,8 @@ const UserData = () => {
     <div>
       <ul>
         <li>ID: {data.id}</li>
-        <li>First Name: {data.first_name}</li>
-        <li>Last Name: {data.last_name}</li>
+        <li>Username: {data.username}</li>
+        <li>Email: {data.email}</li>
       </ul>
       <button onClick={() => refetch()}>refetch</button>
     </div>
@@ -34,7 +34,6 @@ const Controls = () => {
   const [id, setId] = useAtom(idAtom)
   return (
     <div>
-      ID: {id}{' '}
       <button type="button" onClick={() => setId((c) => c - 1)}>
         Prev
       </button>{' '}
