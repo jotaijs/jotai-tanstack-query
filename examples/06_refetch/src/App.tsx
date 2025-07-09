@@ -31,7 +31,7 @@ const UserData = () => {
 }
 
 const Controls = () => {
-  const [id, setId] = useAtom(idAtom)
+  const [_id, setId] = useAtom(idAtom)
   return (
     <div>
       <button type="button" onClick={() => setId((c) => c - 1)}>
