@@ -55,7 +55,7 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@tanstack/query-core": "^5.12.1",
+    "@tanstack/query-core": "^5.81.2",
     "@testing-library/react": "^14.0.0",
     "@types/jest": "^29.5.4",
     "@types/node": "^20.5.9",

@@ -1,9 +1,9 @@
 import {
-  DefaultError,
-  InfiniteData,
+  type DefaultError,
+  type InfiniteData,
   InfiniteQueryObserver,
   QueryClient,
-  QueryKey,
+  type QueryKey,
   QueryObserver,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom } from 'jotai'
@@ -66,7 +66,6 @@ export function atomWithInfiniteQuery<
     TQueryFnData,
     TError,
     TData,
-    TQueryFnData,
     TQueryKey,
     TPageParam
   >,

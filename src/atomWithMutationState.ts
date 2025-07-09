@@ -1,9 +1,9 @@
 import {
-  DefaultError,
+  type DefaultError,
   Mutation,
   MutationCache,
-  MutationFilters,
-  MutationState,
+  type MutationFilters,
+  type MutationState,
   QueryClient,
 } from '@tanstack/query-core'
 import { Getter, atom } from 'jotai'

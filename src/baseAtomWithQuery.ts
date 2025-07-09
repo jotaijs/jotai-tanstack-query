@@ -1,8 +1,8 @@
 import {
   QueryClient,
-  QueryKey,
+  type QueryKey,
   QueryObserver,
-  QueryObserverResult,
+  type QueryObserverResult,
   notifyManager,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
@@ -62,9 +62,7 @@ export function baseAtomWithQuery<
     defaultedOptions._optimisticResults = 'optimistic'
 
     if (cachedObserver) {
-      cachedObserver.setOptions(defaultedOptions, {
-        listeners: false,
-      })
+      cachedObserver.setOptions(defaultedOptions)
     }
 
     return ensureStaleTime(defaultedOptions)

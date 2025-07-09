@@ -1,6 +1,6 @@
 import {
   MutationObserver,
-  MutationOptions,
+  type MutationOptions,
   QueryClient,
   notifyManager,
 } from '@tanstack/query-core'
