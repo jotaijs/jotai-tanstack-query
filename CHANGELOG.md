@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+## [0.9.2] - 2025-07-10
+### Changed
+- upgrade @tankstack/query-core to 5.81.5
+
 ## [0.9.1] - 2025-07-09
 ### Changed
 - upgrade @tankstack/query-core to 5.81.2
