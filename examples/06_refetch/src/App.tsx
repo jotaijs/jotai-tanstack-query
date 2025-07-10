@@ -31,9 +31,10 @@ const UserData = () => {
 }
 
 const Controls = () => {
-  const [_id, setId] = useAtom(idAtom)
+  const [id, setId] = useAtom(idAtom)
   return (
     <div>
+      ID: {id}{' '}
       <button type="button" onClick={() => setId((c) => c - 1)}>
         Prev
       </button>{' '}
