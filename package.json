@@ -90,5 +90,6 @@
   "peerDependencies": {
     "@tanstack/query-core": "*",
     "jotai": ">=2.0.0"
-  }
+  },
+  "packageManager": "pnpm@10.13.1"
 }
