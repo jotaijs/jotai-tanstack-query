@@ -5,7 +5,7 @@ import {
   notifyManager,
 } from '@tanstack/query-core'
 import { Atom, Getter, atom } from 'jotai'
-import { queryClientAtom } from './queryClientAtom'
+import { queryClientAtom } from './_queryClientAtom'
 import { AtomWithMutationResult, MutateFunction } from './types'
 import { shouldThrowError } from './utils'
 

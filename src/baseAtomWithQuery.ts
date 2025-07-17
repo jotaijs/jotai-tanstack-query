@@ -6,7 +6,7 @@ import {
   notifyManager,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
-import { queryClientAtom } from './queryClientAtom'
+import { queryClientAtom } from './_queryClientAtom'
 import { BaseAtomWithQueryOptions } from './types'
 import { ensureStaleTime, getHasError, shouldSuspend } from './utils'
 
