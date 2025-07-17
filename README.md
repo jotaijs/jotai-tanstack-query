@@ -274,14 +274,13 @@ This will result in `todosAtom` showing stale data as it was not prompted to ref
 
 ```jsx
 import { Provider } from 'jotai/react'
-import { useHydrateAtoms } from 'jotai/react/utils'
 import {
   useMutation,
   useQueryClient,
   QueryClient,
-  QueryClientProvider,
 } from '@tanstack/react-query'
 import { atomWithQuery, queryClientAtom } from 'jotai-tanstack-query'
+import { QueryClientProvider } from 'jotai-tanstack-query/react'
 
 const queryClient = new QueryClient()
 
@@ -358,11 +357,11 @@ All you have to do is put the `<ReactQueryDevtools />` within `<QueryClientProvi
 
 ```tsx
 import {
-  QueryClientProvider,
   QueryClient,
   QueryCache,
 } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { QueryClientProvider } from 'jotai-tanstack-query/react'
 import { queryClientAtom } from 'jotai-tanstack-query'
 
 const queryClient = new QueryClient({
@@ -372,11 +371,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-const HydrateAtoms = ({ children }) => {
-  useHydrateAtoms([[queryClientAtom, queryClient]])
-  return children
-}
 
 export const App = () => {
   return (
