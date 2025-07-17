@@ -1,4 +1,4 @@
-export { queryClientAtom } from './queryClientAtom'
+export { queryClientAtom } from './_queryClientAtom'
 export { atomWithQuery } from './atomWithQuery'
 export { atomWithSuspenseQuery } from './atomWithSuspenseQuery'
 export { atomWithInfiniteQuery } from './atomWithInfiniteQuery'

@@ -7,7 +7,7 @@ import {
   QueryClient,
 } from '@tanstack/query-core'
 import { Getter, atom } from 'jotai'
-import { queryClientAtom } from './queryClientAtom'
+import { queryClientAtom } from './_queryClientAtom'
 
 type MutationStateOptions<TResult = MutationState> = {
   filters?: MutationFilters
