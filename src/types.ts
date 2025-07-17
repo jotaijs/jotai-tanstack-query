@@ -218,3 +218,5 @@ export type DefinedInitialDataInfiniteOptions<
     | NonUndefinedGuard<InfiniteData<TQueryFnData, TPageParam>>
     | (() => NonUndefinedGuard<InfiniteData<TQueryFnData, TPageParam>>)
 }
+
+export type MaybePromise<T> = T | Promise<T>

@@ -12,6 +12,7 @@ import {
   AtomWithQueryResult,
   DefinedAtomWithQueryResult,
   DefinedInitialDataOptions,
+  MaybePromise,
   UndefinedInitialDataOptions,
 } from './types'
 
@@ -23,7 +24,9 @@ export function atomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>,
+  ) => MaybePromise<
+    UndefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>
+  >,
   getQueryClient?: (get: Getter) => QueryClient
 ): WritableAtom<AtomWithQueryResult<TData, TError>, [], void>
 export function atomWithQuery<
@@ -34,7 +37,9 @@ export function atomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => DefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>,
+  ) => MaybePromise<
+    DefinedInitialDataOptions<TQueryFnData, TError, TData, TQueryKey>
+  >,
   getQueryClient?: (get: Getter) => QueryClient
 ): WritableAtom<DefinedAtomWithQueryResult<TData, TError>, [], void>
 export function atomWithQuery<
@@ -45,11 +50,13 @@ export function atomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  ) => MaybePromise<
+    AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>
+  >,
   getQueryClient?: (get: Getter) => QueryClient
 ): WritableAtom<AtomWithQueryResult<TData, TError>, [], void>
 export function atomWithQuery(
-  getOptions: (get: Getter) => AtomWithQueryOptions,
+  getOptions: (get: Getter) => MaybePromise<AtomWithQueryOptions>,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
 ) {
   return baseAtomWithQuery(getOptions, QueryObserver, getQueryClient)

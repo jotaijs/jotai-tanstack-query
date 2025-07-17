@@ -69,8 +69,8 @@ importers:
         specifier: ^29.6.4
         version: 29.6.4
       jotai:
-        specifier: ^2.4.2
-        version: 2.4.2(@types/react@18.2.21)(react@18.2.0)
+        specifier: ^2.12.5
+        version: 2.12.5(@types/react@18.2.21)(react@18.2.0)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -2541,8 +2541,8 @@ packages:
       node-notifier:
         optional: true
 
-  jotai@2.4.2:
-    resolution: {integrity: sha512-90jXVOd9h6gi5JXk558M+wnJfaaVN2WegcNOCfiFbWboNaDl6DkRgiY/K1oeqTfYJmq8yM7XPsL99LAvcOPqhw==}
+  jotai@2.12.5:
+    resolution: {integrity: sha512-G8m32HW3lSmcz/4mbqx0hgJIQ0ekndKWiYP7kWVKi0p6saLXdSoye+FZiOFyonnd7Q482LCzm8sMDl7Ar1NWDw==}
     engines: {node: '>=12.20.0'}
     peerDependencies:
       '@types/react': '>=17.0.0'
@@ -6861,7 +6861,7 @@ snapshots:
       - supports-color
       - ts-node
 
-  jotai@2.4.2(@types/react@18.2.21)(react@18.2.0):
+  jotai@2.12.5(@types/react@18.2.21)(react@18.2.0):
     optionalDependencies:
       '@types/react': 18.2.21
       react: 18.2.0

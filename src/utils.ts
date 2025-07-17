@@ -7,6 +7,15 @@ import type {
   ThrowOnError,
 } from '@tanstack/query-core'
 
+export function isPromiseLike<T>(value: unknown): value is Promise<T> {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'then' in value &&
+    typeof (value as any).then === 'function'
+  )
+}
+
 export const shouldSuspend = (
   defaultedOptions:
     | DefaultedQueryObserverOptions<any, any, any, any, any>
