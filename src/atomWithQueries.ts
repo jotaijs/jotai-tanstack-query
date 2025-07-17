@@ -1,53 +1,27 @@
-import {
-  type DefaultError,
-  QueryClient,
-  type QueryKey,
-  QueryObserver,
-} from '@tanstack/query-core'
+import { QueryClient, QueryObserver } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
 import { AtomWithQueryOptions, AtomWithQueryResult } from './types'
 
-export function atomWithQueries<
-  TCombinedResult,
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
->(
+export function atomWithQueries<TCombinedResult>(
   {
     queries,
     combine,
   }: {
-    queries: Array<
-      (
-        get: Getter
-      ) => AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>
-    >
-    combine: (
-      results: AtomWithQueryResult<TQueryFnData, TError>[]
-    ) => TCombinedResult
+    queries: Array<(get: Getter) => AtomWithQueryOptions>
+    combine: (results: AtomWithQueryResult[]) => TCombinedResult
   },
   getQueryClient?: (get: Getter) => QueryClient
 ): WritableAtom<TCombinedResult, [], void>
-export function atomWithQueries<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
->(
+export function atomWithQueries(
   {
     queries,
   }: {
-    queries: Array<
-      (
-        get: Getter
-      ) => AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>
-    >
+    queries: Array<(get: Getter) => AtomWithQueryOptions>
   },
   getQueryClient?: (get: Getter) => QueryClient
-): Array<WritableAtom<AtomWithQueryResult<TQueryFnData, TError>, [], void>>
+): Array<WritableAtom<AtomWithQueryResult, [], void>>
 
 export function atomWithQueries(
   {
