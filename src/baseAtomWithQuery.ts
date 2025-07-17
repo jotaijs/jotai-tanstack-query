@@ -7,8 +7,13 @@ import {
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
 import { queryClientAtom } from './queryClientAtom'
-import { BaseAtomWithQueryOptions } from './types'
-import { ensureStaleTime, getHasError, shouldSuspend } from './utils'
+import { BaseAtomWithQueryOptions, MaybePromise } from './types'
+import {
+  ensureStaleTime,
+  getHasError,
+  isPromiseLike,
+  shouldSuspend,
+} from './utils'
 
 export function baseAtomWithQuery<
   TQueryFnData,
@@ -19,12 +24,8 @@ export function baseAtomWithQuery<
 >(
   getOptions: (
     get: Getter
-  ) => BaseAtomWithQueryOptions<
-    TQueryFnData,
-    TError,
-    TData,
-    TQueryData,
-    TQueryKey
+  ) => MaybePromise<
+    BaseAtomWithQueryOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>
   >,
   Observer: typeof QueryObserver,
   getQueryClient: (get: Getter) => QueryClient = (get) => get(queryClientAtom)
@@ -54,6 +55,22 @@ export function baseAtomWithQuery<
   const defaultedOptionsAtom = atom((get) => {
     const client = get(clientAtom)
     const options = getOptions(get)
+    if (isPromiseLike(options)) {
+      return options.then((resolvedOptions) => {
+        const defaultedOptions = client.defaultQueryOptions(resolvedOptions)
+
+        const cache = get(observerCacheAtom)
+        const cachedObserver = cache.get(client)
+
+        defaultedOptions._optimisticResults = 'optimistic'
+
+        if (cachedObserver) {
+          cachedObserver.setOptions(defaultedOptions)
+        }
+
+        return ensureStaleTime(defaultedOptions)
+      })
+    }
     const defaultedOptions = client.defaultQueryOptions(options)
 
     const cache = get(observerCacheAtom)
@@ -81,6 +98,15 @@ export function baseAtomWithQuery<
 
     if (cachedObserver) return cachedObserver
 
+    if (isPromiseLike(defaultedOptions)) {
+      return defaultedOptions.then((resolvedOptions) => {
+        const newObserver = new Observer(client, resolvedOptions)
+        observerCache.set(client, newObserver)
+
+        return newObserver
+      })
+    }
+
     const newObserver = new Observer(client, defaultedOptions)
     observerCache.set(client, newObserver)
 
@@ -93,6 +119,32 @@ export function baseAtomWithQuery<
   const dataAtom = atom((get) => {
     const observer = get(observerAtom)
     const defaultedOptions = get(defaultedOptionsAtom)
+    if (isPromiseLike(defaultedOptions) || isPromiseLike(observer)) {
+      return Promise.all([observer, defaultedOptions]).then(
+        ([resolvedObserver, resolvedOptions]) => {
+          const result = resolvedObserver.getOptimisticResult(resolvedOptions)
+
+          const resultAtom = atom(result)
+          if (process.env.NODE_ENV !== 'production') {
+            resultAtom.debugPrivate = true
+          }
+
+          resultAtom.onMount = (set) => {
+            const unsubscribe = resolvedObserver.subscribe(
+              notifyManager.batchCalls(set)
+            )
+            return () => {
+              if (resolvedObserver.getCurrentResult().isError) {
+                resolvedObserver.getCurrentQuery().reset()
+              }
+              unsubscribe()
+            }
+          }
+
+          return resultAtom
+        }
+      )
+    }
     const result = observer.getOptimisticResult(defaultedOptions)
 
     const resultAtom = atom(result)
@@ -121,8 +173,36 @@ export function baseAtomWithQuery<
       get(refreshAtom)
       const observer = get(observerAtom)
       const defaultedOptions = get(defaultedOptionsAtom)
+      const data = get(dataAtom)
+      if (
+        isPromiseLike(defaultedOptions) ||
+        isPromiseLike(data) ||
+        isPromiseLike(observer)
+      ) {
+        return Promise.all([defaultedOptions, data, observer]).then(
+          ([resolvedOptions, resolvedData, resolvedObserver]) => {
+            const result = get(resolvedData)
 
-      const result = get(get(dataAtom))
+            if (shouldSuspend(resolvedOptions, result, false)) {
+              return resolvedObserver.fetchOptimistic(resolvedOptions)
+            }
+
+            if (
+              getHasError({
+                result,
+                query: resolvedObserver.getCurrentQuery(),
+                throwOnError: resolvedOptions.throwOnError,
+              })
+            ) {
+              throw result.error
+            }
+
+            return result
+          }
+        )
+      }
+
+      const result = get(data)
 
       if (shouldSuspend(defaultedOptions, result, false)) {
         return observer.fetchOptimistic(defaultedOptions)
