@@ -5,7 +5,7 @@
   "dependencies": {
     "@tanstack/query-core": "latest",
     "jotai": "latest",
-    "jotai-tanstack-query": "workspace:*",
+    "jotai-tanstack-query": "latest",
     "react": "latest",
     "react-dom": "latest"
   },
