@@ -1,4 +1,8 @@
-import { QueryClient, QueryObserver } from '@tanstack/query-core'
+import {
+  type DefaultError,
+  QueryClient,
+  QueryObserver,
+} from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
 import { queryClientAtom } from './queryClientAtom'
@@ -14,14 +18,18 @@ export function atomWithQueries<TCombinedResult>(
   },
   getQueryClient?: (get: Getter) => QueryClient
 ): WritableAtom<TCombinedResult, [], void>
-export function atomWithQueries(
+export function atomWithQueries<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+>(
   {
     queries,
   }: {
     queries: Array<(get: Getter) => AtomWithQueryOptions>
   },
   getQueryClient?: (get: Getter) => QueryClient
-): Array<WritableAtom<AtomWithQueryResult, [], void>>
+): Array<WritableAtom<AtomWithQueryResult<TData, TError>, [], void>>
 
 export function atomWithQueries(
   {

@@ -1,14 +1,20 @@
 import React from 'react'
 import { Atom, atom } from 'jotai'
 import { useAtom } from 'jotai/react'
-import { atomWithQueries } from 'jotai-tanstack-query'
+import { type AtomWithQueryResult, atomWithQueries } from 'jotai-tanstack-query'
 
 const userIdsAtom = atom([1, 2, 3])
+
+interface User {
+  id: number
+  name: string
+  email: string
+}
 
 const UsersData = () => {
   const [userIds] = useAtom(userIdsAtom)
 
-  const userQueryAtoms = atomWithQueries({
+  const userQueryAtoms = atomWithQueries<User>({
     queries: userIds.map((id) => () => ({
       queryKey: ['user', id],
       queryFn: async ({ queryKey: [, userId] }) => {
@@ -34,7 +40,11 @@ const UsersData = () => {
 const CombinedUsersData = () => {
   const [userIds] = useAtom(userIdsAtom)
 
-  const combinedUsersDataAtom = atomWithQueries({
+  const combinedUsersDataAtom = atomWithQueries<{
+    data: User[]
+    isPending: boolean
+    isError: boolean
+  }>({
     queries: userIds.map((id) => () => ({
       queryKey: ['user', id],
       queryFn: async ({ queryKey: [, userId] }) => {
@@ -46,7 +56,7 @@ const CombinedUsersData = () => {
     })),
     combine: (results) => {
       return {
-        data: results.map((result) => result.data),
+        data: results.map((result) => result.data as User),
         isPending: results.some((result) => result.isPending),
         isError: results.some((result) => result.isError),
       }
@@ -63,7 +73,15 @@ const CombinedUsersData = () => {
   )
 }
 
-const CombinedData = ({ queryAtom }: { queryAtom: Atom<any> }) => {
+const CombinedData = ({
+  queryAtom,
+}: {
+  queryAtom: Atom<{
+    data: User[]
+    isPending: boolean
+    isError: boolean
+  }>
+}) => {
   const [{ data, isPending, isError }] = useAtom(queryAtom)
 
   if (isPending) return <div>Loading...</div>
@@ -71,14 +89,18 @@ const CombinedData = ({ queryAtom }: { queryAtom: Atom<any> }) => {
 
   return (
     <div>
-      {data.map((user: any) => (
+      {data.map((user) => (
         <UserDisplay key={user.id} user={user} />
       ))}
     </div>
   )
 }
 
-const Data = ({ queryAtom }: { queryAtom: Atom<any> }) => {
+const Data = ({
+  queryAtom,
+}: {
+  queryAtom: Atom<AtomWithQueryResult<User>>
+}) => {
   const [{ data, isPending, isError }] = useAtom(queryAtom)
 
   if (isPending) return <div>Loading...</div>
@@ -87,7 +109,7 @@ const Data = ({ queryAtom }: { queryAtom: Atom<any> }) => {
   return <UserDisplay user={data} />
 }
 
-const UserDisplay = ({ user }: { user: any }) => {
+const UserDisplay = ({ user }: { user: User }) => {
   return (
     <div>
       <div>ID: {user.id}</div>
