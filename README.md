@@ -9,6 +9,7 @@
 - [Incremental Adoption](#incremental-adoption)
 - [Exported Functions](#exported-functions)
   - [atomWithQuery](#atomwithquery-usage)
+  - [atomWithQueries](#atomwithqueries-usage)
   - [atomWithInfiniteQuery](#atomwithinfinitequery-usage)
   - [atomWithMutation](#atomwithmutation-usage)
   - [atomWithMutationState](#atomwithmutationstate-usage)
@@ -56,6 +57,7 @@ You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all 
 ### Exported functions
 
 - `atomWithQuery` for [useQuery](https://tanstack.com/query/v5/docs/react/reference/useQuery)
+- `atomWithQueries` for [useQueries](https://tanstack.com/query/v5/docs/react/reference/useQueries)
 - `atomWithInfiniteQuery` for [useInfiniteQuery](https://tanstack.com/query/v5/docs/react/reference/useInfiniteQuery)
 - `atomWithMutation` for [useMutation](https://tanstack.com/query/v5/docs/react/reference/useMutation)
 - `atomWithSuspenseQuery` for [useSuspenseQuery](https://tanstack.com/query/v5/docs/react/reference/useSuspenseQuery)
@@ -95,6 +97,103 @@ const UserData = () => {
   if (isError) return <div>Error</div>
 
   return <div>{JSON.stringify(data)}</div>
+}
+```
+
+### atomWithQueries usage
+
+`atomWithQueries` creates a new atom that implements parallel queries from TanStack Query. It allows you to run multiple queries concurrently and optionally combine their results.
+
+There are two ways to use `atomWithQueries`:
+
+#### Basic usage - Returns an array of query atoms
+
+```jsx
+import { atom, useAtom } from 'jotai'
+import { atomWithQueries } from 'jotai-tanstack-query'
+
+const userIdsAtom = atom([1, 2, 3])
+
+const UsersData = () => {
+  const [userIds] = useAtom(userIdsAtom)
+
+  const userQueryAtoms = atomWithQueries({
+    queries: userIds.map((id) => () => ({
+      queryKey: ['user', id],
+      queryFn: async ({ queryKey: [, userId] }) => {
+        const res = await fetch(
+          `https://jsonplaceholder.typicode.com/users/${userId}`
+        )
+        return res.json()
+      },
+    })),
+  })
+
+  return (
+    <div>
+      {userQueryAtoms.map((queryAtom, index) => (
+        <UserData key={index} queryAtom={queryAtom} />
+      ))}
+    </div>
+  )
+}
+
+const UserData = ({ queryAtom }) => {
+  const [{ data, isPending, isError }] = useAtom(queryAtom)
+
+  if (isPending) return <div>Loading...</div>
+  if (isError) return <div>Error</div>
+
+  return (
+    <div>
+      {data.name} - {data.email}
+    </div>
+  )
+}
+```
+
+#### Advanced usage - Combine multiple query results
+
+```jsx
+import { atom, useAtom } from 'jotai'
+import { atomWithQueries } from 'jotai-tanstack-query'
+
+const userIdsAtom = atom([1, 2, 3])
+
+const CombinedUsersData = () => {
+  const [userIds] = useAtom(userIdsAtom)
+
+  const combinedUsersDataAtom = atomWithQueries({
+    queries: userIds.map((id) => () => ({
+      queryKey: ['user', id],
+      queryFn: async ({ queryKey: [, userId] }) => {
+        const res = await fetch(
+          `https://jsonplaceholder.typicode.com/users/${userId}`
+        )
+        return res.json()
+      },
+    })),
+    combine: (results) => ({
+      data: results.map((result) => result.data),
+      isPending: results.some((result) => result.isPending),
+      isError: results.some((result) => result.isError),
+    }),
+  })
+
+  const [{ data, isPending, isError }] = useAtom(combinedUsersDataAtom)
+
+  if (isPending) return <div>Loading...</div>
+  if (isError) return <div>Error</div>
+
+  return (
+    <div>
+      {data.map((user) => (
+        <div key={user.id}>
+          {user.name} - {user.email}
+        </div>
+      ))}
+    </div>
+  )
 }
 ```
 
