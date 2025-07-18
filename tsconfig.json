@@ -17,5 +17,6 @@
       "jotai-tanstack-query": ["./src"]
     }
   },
+  "include": ["__tests__", "src"],
   "exclude": ["node_modules", "dist", "webpack.config.js"]
 }
