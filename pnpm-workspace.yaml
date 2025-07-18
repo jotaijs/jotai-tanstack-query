@@ -1,2 +1,8 @@
+packages:
+  - examples/*
+
 onlyBuiltDependencies:
   - '@swc/core'
+  - esbuild
+
+preferWorkspacePackages: true
