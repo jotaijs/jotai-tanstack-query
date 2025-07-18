@@ -21,11 +21,11 @@ importers:
         specifier: ^20.5.9
         version: 20.5.9
       '@types/react':
-        specifier: ^18.2.21
-        version: 18.2.21
+        specifier: ^19.1.8
+        version: 19.1.8
       '@types/react-dom':
-        specifier: ^18.2.7
-        version: 18.2.7
+        specifier: ^19.1.6
+        version: 19.1.6(@types/react@19.1.8)
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.6.0
         version: 6.6.0(@typescript-eslint/parser@6.6.0(eslint@8.48.0)(typescript@5.2.2))(eslint@8.48.0)(typescript@5.2.2)
@@ -70,7 +70,7 @@ importers:
         version: 29.6.4
       jotai:
         specifier: ^2.4.2
-        version: 2.4.2(@types/react@18.2.21)(react@18.2.0)
+        version: 2.4.2(@types/react@19.1.8)(react@18.2.0)
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -115,7 +115,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -149,7 +149,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -183,7 +183,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -217,7 +217,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -251,7 +251,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -285,7 +285,7 @@ importers:
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
         specifier: latest
-        version: link:../..
+        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
       react:
         specifier: latest
         version: 19.1.0
@@ -1246,9 +1246,6 @@ packages:
   '@types/parse-json@4.0.0':
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
 
-  '@types/prop-types@15.7.5':
-    resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
-
   '@types/qs@6.9.8':
     resolution: {integrity: sha512-u95svzDlTysU5xecFNTgfFG5RUWu1A9P0VzgpcIiGZA9iraHOdSzcxMxQ55DyeRaGCSxQi7LxXDI4rzq/MYfdg==}
 
@@ -1263,9 +1260,6 @@ packages:
     peerDependencies:
       '@types/react': ^19.0.0
 
-  '@types/react@18.2.21':
-    resolution: {integrity: sha512-neFKG/sBAwGxHgXiIxnbm3/AAVQ/cMRS93hvBpg8xYRbeQSPVABp9U2bRnPf0iI4+Ucdv3plSxKK+3CW2ENJxA==}
-
   '@types/react@19.1.8':
     resolution: {integrity: sha512-AwAfQ2Wa5bCx9WP8nZL2uMZWod7J7/JSplxbTmBQ5ms6QpqNYm672H0Vu9ZVKVngQ+ii4R/byguVEUZQyeg44g==}
 
@@ -1274,9 +1268,6 @@ packages:
 
   '@types/retry@0.12.0':
     resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
-
-  '@types/scheduler@0.16.3':
-    resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
 
   '@types/semver@7.5.1':
     resolution: {integrity: sha512-cJRQXpObxfNKkFAZbJl2yjWtJCqELQIdShsogr1d2MilP8dKD9TE/nEKHkJgUNHdGKCQaf9HbIynuV2csLGVLg==}
@@ -5461,25 +5452,17 @@ snapshots:
   '@types/parse-json@4.0.0':
     optional: true
 
-  '@types/prop-types@15.7.5': {}
-
   '@types/qs@6.9.8': {}
 
   '@types/range-parser@1.2.4': {}
 
   '@types/react-dom@18.2.7':
     dependencies:
-      '@types/react': 18.2.21
+      '@types/react': 19.1.8
 
   '@types/react-dom@19.1.6(@types/react@19.1.8)':
     dependencies:
       '@types/react': 19.1.8
-
-  '@types/react@18.2.21':
-    dependencies:
-      '@types/prop-types': 15.7.5
-      '@types/scheduler': 0.16.3
-      csstype: 3.1.2
 
   '@types/react@19.1.8':
     dependencies:
@@ -5488,8 +5471,6 @@ snapshots:
   '@types/resolve@1.20.2': {}
 
   '@types/retry@0.12.0': {}
-
-  '@types/scheduler@0.16.3': {}
 
   '@types/semver@7.5.1': {}
 
@@ -7729,9 +7710,9 @@ snapshots:
       '@types/react': 19.1.8
       react: 19.1.0
 
-  jotai@2.4.2(@types/react@18.2.21)(react@18.2.0):
+  jotai@2.4.2(@types/react@19.1.8)(react@18.2.0):
     optionalDependencies:
-      '@types/react': 18.2.21
+      '@types/react': 19.1.8
       react: 18.2.0
 
   js-tokens@4.0.0: {}
