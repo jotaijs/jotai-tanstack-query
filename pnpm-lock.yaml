@@ -99,8 +99,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -133,8 +133,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -167,8 +167,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -201,8 +201,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -235,8 +235,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -269,8 +269,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -303,8 +303,8 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: latest
-        version: 0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0))
+        specifier: ../../
+        version: link:../..
       react:
         specifier: latest
         version: 19.1.0
@@ -2558,12 +2558,6 @@ packages:
     peerDependenciesMeta:
       node-notifier:
         optional: true
-
-  jotai-tanstack-query@0.9.2:
-    resolution: {integrity: sha512-bN91r5zHTVPkYYKgo4fOQOU/ATRByq0xZOaooP/VlLxdLaJh43uGYpG4RWnDVnj3/CPLJfLSfAdTQ2L9nEft2A==}
-    peerDependencies:
-      '@tanstack/query-core': '*'
-      jotai: '>=2.0.0'
 
   jotai@2.12.5:
     resolution: {integrity: sha512-G8m32HW3lSmcz/4mbqx0hgJIQ0ekndKWiYP7kWVKi0p6saLXdSoye+FZiOFyonnd7Q482LCzm8sMDl7Ar1NWDw==}
@@ -6372,11 +6366,6 @@ snapshots:
       - babel-plugin-macros
       - supports-color
       - ts-node
-
-  jotai-tanstack-query@0.9.2(@tanstack/query-core@5.83.0)(jotai@2.12.5(@types/react@19.1.8)(react@19.1.0)):
-    dependencies:
-      '@tanstack/query-core': 5.83.0
-      jotai: 2.12.5(@types/react@19.1.8)(react@19.1.0)
 
   jotai@2.12.5(@types/react@19.1.8)(react@19.1.0):
     optionalDependencies:

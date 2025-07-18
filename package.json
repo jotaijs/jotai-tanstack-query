@@ -19,7 +19,7 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.js",
+      "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     }
