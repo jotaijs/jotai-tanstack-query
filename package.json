@@ -22,6 +22,12 @@
       "module": "./dist/index.js",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "module": "./dist/react.js",
+      "import": "./dist/react.mjs",
+      "default": "./dist/react.js"
     }
   },
   "sideEffects": false,
@@ -54,7 +60,8 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@tanstack/query-core": "^5.81.5",
+    "@tanstack/query-core": "^5.83.0",
+    "@tanstack/react-query": "^5.83.0",
     "@testing-library/react": "^14.0.0",
     "@types/jest": "^29.5.4",
     "@types/node": "^20.5.9",
@@ -84,7 +91,13 @@
   },
   "peerDependencies": {
     "@tanstack/query-core": "*",
+    "@tanstack/react-query": "*",
     "jotai": ">=2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tanstack/react-query": {
+      "optional": true
+    }
   },
   "packageManager": "pnpm@10.13.1"
 }

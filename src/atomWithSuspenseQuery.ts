@@ -5,8 +5,8 @@ import {
   QueryObserver,
 } from '@tanstack/query-core'
 import { Getter, WritableAtom, atom } from 'jotai'
+import { queryClientAtom } from './_queryClientAtom'
 import { baseAtomWithQuery } from './baseAtomWithQuery'
-import { queryClientAtom } from './queryClientAtom'
 import {
   AtomWithSuspenseQueryOptions,
   AtomWithSuspenseQueryResult,
