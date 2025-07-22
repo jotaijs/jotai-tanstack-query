@@ -1121,9 +1121,6 @@ packages:
     peerDependencies:
       react: ^18 || ^19
 
-  '@tanstack/query-core@5.83.0':
-    resolution: {integrity: sha512-0M8dA+amXUkyz5cVUm/B+zSk3xkQAcuXuz5/Q/LveT4ots2rBpPTZOzd7yJa2Utsf8D2Upl5KyjhHRY+9lB/XA==}
-
   '@testing-library/dom@9.3.1':
     resolution: {integrity: sha512-0DGPd9AR3+iDTjGoMpxIkAsUihHZ3Ai6CneU6bRRrffXMgzCdlNk43jTrD2/5LT6CBb3MWTP8v510JzYtahD2w==}
     engines: {node: '>=14'}
@@ -4478,8 +4475,6 @@ snapshots:
     dependencies:
       '@tanstack/query-core': 5.83.0
       react: 18.2.0
-
-  '@tanstack/query-core@5.83.0': {}
 
   '@testing-library/dom@9.3.1':
     dependencies:
