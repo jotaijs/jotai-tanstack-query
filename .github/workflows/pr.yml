@@ -15,5 +15,5 @@ jobs:
           cache-dependency-path: '**/pnpm-lock.yaml'
       - run: pnpm install --frozen-lockfile
       - name: Build
-        run: pnpm build
+        run: pnpm run compile
       - run: pnpm dlx pkg-pr-new publish
