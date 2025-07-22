@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react'
+import { Suspense } from 'react'
 import { useAtom } from 'jotai/react'
 import { atomWithSuspenseInfiniteQuery } from 'jotai-tanstack-query'
 

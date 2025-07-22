@@ -1,4 +1,3 @@
-import React from 'react'
 import { useAtom } from 'jotai'
 import { atomWithInfiniteQuery } from 'jotai-tanstack-query'
 

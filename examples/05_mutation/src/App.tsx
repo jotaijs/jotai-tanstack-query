@@ -1,4 +1,3 @@
-import React from 'react'
 import { useAtom } from 'jotai/react'
 import { atomWithMutation } from 'jotai-tanstack-query'
 
