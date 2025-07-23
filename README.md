@@ -395,23 +395,11 @@ import { QueryClientProvider } from 'jotai-tanstack-query/react'
 
 const queryClient = new QueryClient()
 
-const HydrateAtoms = ({ children }) => {
-  useHydrateAtoms([[queryClientAtom, queryClient]])
-  return children
-}
-
-export const App = () => {
+export const Root = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Provider>
-        {/*
-   This Provider initialisation step is needed so that we reference the same
-   queryClient in both atomWithQuery and other parts of the app. Without this,
-   our useQueryClient() hook will return a different QueryClient object
-	*/}
-        <HydrateAtoms>
-          <App />
-        </HydrateAtoms>
+        <App />
       </Provider>
     </QueryClientProvider>
   )
@@ -480,13 +468,11 @@ const queryClient = new QueryClient({
   },
 })
 
-export const App = () => {
+export const Root = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <Provider>
-        <HydrateAtoms>
-          <App />
-        </HydrateAtoms>
+        <App />
       </Provider>
       <ReactQueryDevtools />
     </QueryClientProvider>
