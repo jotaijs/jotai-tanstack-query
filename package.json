@@ -1,9 +1,10 @@
 {
   "name": "jotai-tanstack-query",
   "description": "👻🌺",
-  "version": "0.9.2",
+  "version": "0.10.0",
   "author": "Daishi Kato",
   "contributors": [
+    "Thaddeus Jiang",
     "Mohammad Bagher Abiat",
     "Kali Charan Reddy Jonna"
   ],
