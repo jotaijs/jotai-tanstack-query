@@ -1,8 +1,10 @@
+linkWorkspacePackages: true
+preferWorkspacePackages: true
+preferFrozenLockfile: true
+
 packages:
   - examples/*
 
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild
-
-preferWorkspacePackages: true
