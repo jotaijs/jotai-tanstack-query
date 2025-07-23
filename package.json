@@ -41,8 +41,8 @@
     "eslint": "eslint --ext .js,.ts,.tsx .",
     "jest": "jest",
     "tsc-test": "tsc --project . --noEmit",
-    "examples:01_typescript": "pnpm --filter ./examples/01_typescript run dev",
-    "examples:02_typescript_suspense": "pnpm --filter ./examples/02_typescript_suspense run dev",
+    "examples:01_query": "pnpm --filter ./examples/01_query run dev",
+    "examples:02_suspense": "pnpm --filter ./examples/02_suspense run dev",
     "examples:03_infinite": "pnpm --filter ./examples/03_infinite run dev",
     "examples:04_infinite_suspense": "pnpm --filter ./examples/04_infinite_suspense run dev",
     "examples:05_mutation": "pnpm --filter ./examples/05_mutation run dev",
@@ -56,8 +56,9 @@
   "keywords": [
     "jotai",
     "react",
-    "tanstack",
-    "query"
+    "tanstack/query",
+    "state management",
+    "data fetching"
   ],
   "license": "MIT",
   "devDependencies": {
