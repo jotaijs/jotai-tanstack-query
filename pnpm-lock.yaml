@@ -102,7 +102,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -136,7 +136,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -170,7 +170,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -204,7 +204,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -238,7 +238,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -272,7 +272,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest
@@ -306,7 +306,7 @@ importers:
         specifier: latest
         version: 2.12.5(@types/react@19.1.8)(react@19.1.0)
       jotai-tanstack-query:
-        specifier: ../../
+        specifier: '*'
         version: link:../..
       react:
         specifier: latest

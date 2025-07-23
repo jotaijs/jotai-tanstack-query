@@ -1,5 +1,7 @@
 # Jotai Query 🚀 👻
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/01_typescript)
+
 [jotai-tanstack-query](https://github.com/jotai-labs/jotai-tanstack-query) is a Jotai extension library for TanStack Query. It provides a wonderful interface with all of the TanStack Query features, providing you the ability to use those features in combination with your existing Jotai state.
 
 # Table of contents
