@@ -1,5 +1,5 @@
 {
-  "name": "jotai-tanstack-query-example",
+  "name": "jotai-tanstack-query-example-query",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
