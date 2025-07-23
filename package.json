@@ -19,7 +19,7 @@
     "./package.json": "./package.json",
     ".": {
       "types": "./dist/index.d.ts",
-      "module": "./dist/index.js",
+      "module": "./dist/index.mjs",
       "import": "./dist/index.mjs",
       "default": "./dist/index.js"
     },
@@ -46,7 +46,8 @@
     "examples:03_infinite": "pnpm --filter ./examples/03_infinite run dev",
     "examples:04_infinite_suspense": "pnpm --filter ./examples/04_infinite_suspense run dev",
     "examples:05_mutation": "pnpm --filter ./examples/05_mutation run dev",
-    "examples:06_refetch": "pnpm --filter ./examples/06_refetch run dev"
+    "examples:06_refetch": "pnpm --filter ./examples/06_refetch run dev",
+    "examples:07_queries": "pnpm --filter ./examples/07_queries run dev"
   },
   "jest": {
     "testEnvironment": "jsdom",
