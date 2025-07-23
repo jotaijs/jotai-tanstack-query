@@ -1,7 +1,5 @@
 # Jotai Query 🚀 👻
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/01_typescript)
-
 [jotai-tanstack-query](https://github.com/jotai-labs/jotai-tanstack-query) is a Jotai extension library for TanStack Query. It provides a wonderful interface with all of the TanStack Query features, providing you the ability to use those features in combination with your existing Jotai state.
 
 # Table of contents
@@ -77,6 +75,8 @@ The second optional `getQueryClient` parameter is a function that return [QueryC
 
 ### atomWithQuery usage
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/01_query)
+
 `atomWithQuery` creates a new atom that implements a standard [`Query`](https://tanstack.com/query/v5/docs/react/guides/queries) from TanStack Query.
 
 ```jsx
@@ -104,7 +104,9 @@ const UserData = () => {
 
 ### atomWithQueries usage
 
-`atomWithQueries` creates a new atom that implements parallel queries from TanStack Query. It allows you to run multiple queries concurrently and optionally combine their results.
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/07_queries)
+
+`atomWithQueries` creates a new atom that implements `Dynamic Parallel Queries` from TanStack Query. It allows you to run multiple queries concurrently and optionally combine their results. You can [read more about Dynamic Parallel Queries here](https://tanstack.com/query/v5/docs/framework/react/guides/parallel-queries#dynamic-parallel-queries-with-usequeries).
 
 There are two ways to use `atomWithQueries`:
 
@@ -201,6 +203,8 @@ const CombinedUsersData = () => {
 
 ### atomWithInfiniteQuery usage
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/03_infinite)
+
 `atomWithInfiniteQuery` is very similar to `atomWithQuery`, however it is for an `InfiniteQuery`, which is used for data that is meant to be paginated. You can [read more about Infinite Queries here](https://tanstack.com/query/v5/docs/guides/infinite-queries).
 
 > Rendering lists that can additively "load more" data onto an existing set of data or "infinite scroll" is also a very common UI pattern. React Query supports a useful version of useQuery called useInfiniteQuery for querying these types of lists.
@@ -244,6 +248,8 @@ const Posts = () => {
 ```
 
 ### atomWithMutation usage
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/05_mutation)
 
 `atomWithMutation` creates a new atom that implements a standard [`Mutation`](https://tanstack.com/query/v5/docs/guides/mutations) from TanStack Query.
 
@@ -298,6 +304,8 @@ jotai-tanstack-query can also be used with React's Suspense.
 
 ### atomWithSuspenseQuery usage
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/02_suspense)
+
 ```jsx
 import { atom, useAtom } from 'jotai'
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query'
@@ -319,6 +327,8 @@ const UserData = () => {
 ```
 
 ### atomWithSuspenseInfiniteQuery usage
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/04_infinite_suspense)
 
 ```jsx
 import { atom, useAtom } from 'jotai'
@@ -457,10 +467,7 @@ $ yarn add @tanstack/react-query-devtools
 All you have to do is put the `<ReactQueryDevtools />` within `<QueryClientProvider />`.
 
 ```tsx
-import {
-  QueryClient,
-  QueryCache,
-} from '@tanstack/react-query'
+import { QueryClient, QueryCache } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { QueryClientProvider } from 'jotai-tanstack-query/react'
 import { queryClientAtom } from 'jotai-tanstack-query'
