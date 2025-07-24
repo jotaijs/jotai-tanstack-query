@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.10.1] - 2025-07-24
+
+### Changed
+
+- fix: '/react' import path for QueryClientProvider utils
+
 ## [0.10.0] - 2025-07-23
 
 ### Changed
