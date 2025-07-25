@@ -93,20 +93,12 @@
     "typescript": "^5.2.2"
   },
   "peerDependencies": {
-    "react": "^18 || ^19",
-    "react-dom": "^18 || ^19",
     "@tanstack/query-core": "*",
     "@tanstack/react-query": "*",
-    "react": "^18.0.0 || ^19.0.0",
-    "jotai": ">=2.0.0"
+    "jotai": ">=2.0.0",
+    "react": "^18 || ^19"
   },
   "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    },
-    "react-dom": {
-      "optional": true
-    },
     "@tanstack/react-query": {
       "optional": true
     },
