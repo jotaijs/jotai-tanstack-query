@@ -40,92 +40,92 @@ export type AtomWithMutationResult<TData, TError, TVariables, TContext> =
     mutateAsync: MutateAsyncFunction<TData, TError, TVariables, TContext>
   }
 
-export interface MutationOptions<
+export type MutationOptions<
   TData = unknown,
   TError = DefaultError,
   TVariables = void,
   TContext = unknown,
-> extends Omit<
-    MutationObserverOptions<TData, TError, TVariables, TContext>,
-    '_defaulted' | 'variables'
-  > {}
+> = Omit<
+  MutationObserverOptions<TData, TError, TVariables, TContext>,
+  '_defaulted' | 'variables'
+>
 
-export interface BaseAtomWithQueryOptions<
+export type BaseAtomWithQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> extends WithRequired<
-    QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
-    'queryKey'
-  > {}
+> = WithRequired<
+  QueryObserverOptions<TQueryFnData, TError, TData, TQueryData, TQueryKey>,
+  'queryKey'
+>
 
-export interface AtomWithQueryOptions<
+export type AtomWithQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> extends Omit<
-    WithRequired<
-      BaseAtomWithQueryOptions<
-        TQueryFnData,
-        TError,
-        TData,
-        TQueryFnData,
-        TQueryKey
-      >,
-      'queryKey'
+> = Omit<
+  WithRequired<
+    BaseAtomWithQueryOptions<
+      TQueryFnData,
+      TError,
+      TData,
+      TQueryFnData,
+      TQueryKey
     >,
-    'suspense'
-  > {}
+    'queryKey'
+  >,
+  'suspense'
+>
 
-export interface AtomWithSuspenseQueryOptions<
+export type AtomWithSuspenseQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
-> extends Omit<
-    AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
-    'enabled' | 'throwOnError' | 'placeholderData'
-  > {}
+> = Omit<
+  AtomWithQueryOptions<TQueryFnData, TError, TData, TQueryKey>,
+  'enabled' | 'throwOnError' | 'placeholderData'
+>
 
-export interface AtomWithInfiniteQueryOptions<
+export type AtomWithInfiniteQueryOptions<
   TQueryFnData = unknown,
   TError = DefaultError,
   TData = TQueryFnData,
   TQueryKey extends QueryKey = QueryKey,
   TPageParam = unknown,
-> extends WithRequired<
-    Omit<
-      InfiniteQueryObserverOptions<
-        TQueryFnData,
-        TError,
-        TData,
-        TQueryKey,
-        TPageParam
-      >,
-      'suspense'
-    >,
-    'queryKey'
-  > {}
-
-export interface AtomWithSuspenseInfiniteQueryOptions<
-  TQueryFnData = unknown,
-  TError = DefaultError,
-  TData = TQueryFnData,
-  TQueryKey extends QueryKey = QueryKey,
-  TPageParam = unknown,
-> extends Omit<
-    AtomWithInfiniteQueryOptions<
+> = WithRequired<
+  Omit<
+    InfiniteQueryObserverOptions<
       TQueryFnData,
       TError,
       TData,
       TQueryKey,
       TPageParam
     >,
-    'enabled' | 'throwOnError' | 'placeholderData'
-  > {}
+    'suspense'
+  >,
+  'queryKey'
+>
+
+export type AtomWithSuspenseInfiniteQueryOptions<
+  TQueryFnData = unknown,
+  TError = DefaultError,
+  TData = TQueryFnData,
+  TQueryKey extends QueryKey = QueryKey,
+  TPageParam = unknown,
+> = Omit<
+  AtomWithInfiniteQueryOptions<
+    TQueryFnData,
+    TError,
+    TData,
+    TQueryKey,
+    TPageParam
+  >,
+  'enabled' | 'throwOnError' | 'placeholderData'
+>
 
 export type AtomWithQueryResult<
   TData = unknown,

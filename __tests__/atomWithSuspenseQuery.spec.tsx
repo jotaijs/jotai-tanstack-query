@@ -3,13 +3,14 @@ import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
 import { Provider, atom, useAtom, useSetAtom } from 'jotai'
 import { ErrorBoundary } from 'react-error-boundary'
+import { vi } from 'vitest'
 import { atomWithSuspenseQuery } from '../src'
 
 let originalConsoleError: typeof console.error
 
 beforeEach(() => {
   originalConsoleError = console.error
-  console.error = jest.fn()
+  console.error = vi.fn()
 })
 afterEach(() => {
   console.error = originalConsoleError
@@ -47,10 +48,7 @@ it('suspense basic, suspends', async () => {
 })
 
 it('query refetch', async () => {
-  const mockFetch = jest.fn<
-    { response: { message: string } },
-    { message: string }[]
-  >((response) => ({
+  const mockFetch = vi.fn((response: { message: string }) => ({
     response,
   }))
   let resolve = () => {}
@@ -95,7 +93,7 @@ it('query refetch', async () => {
 
 describe('intialData test', () => {
   it('query with initialData test', async () => {
-    const mockFetch = jest.fn((response) => ({ response }))
+    const mockFetch = vi.fn((response) => ({ response }))
     let resolve = () => {}
 
     const countAtom = atomWithSuspenseQuery(() => ({
@@ -140,7 +138,7 @@ describe('intialData test', () => {
   })
 
   it('query with initialData test with dependency', async () => {
-    const mockFetch = jest.fn((response) => ({ response }))
+    const mockFetch = vi.fn((response) => ({ response }))
     let resolve = () => {}
     const numberAtom = atom(10)
     const countAtom = atomWithSuspenseQuery((get) => ({
@@ -487,7 +485,7 @@ it(`ensure that setQueryData for an inactive query updates its atom state`, asyn
   const extraKey = 'uniqueKey'
   const pageAtom = atom(1)
 
-  const queryFn = jest.fn(() => {
+  const queryFn = vi.fn(() => {
     return Promise.resolve('John Doe')
   })
 

@@ -3,13 +3,14 @@ import type { ReactNode } from 'react'
 import { fireEvent, render } from '@testing-library/react'
 import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
+import { vi } from 'vitest'
 import { atomWithInfiniteQuery } from '../src/index'
 
 let originalConsoleError: typeof console.error
 
 beforeEach(() => {
   originalConsoleError = console.error
-  console.error = jest.fn()
+  console.error = vi.fn()
 })
 afterEach(() => {
   console.error = originalConsoleError
@@ -56,7 +57,7 @@ it('infinite query basic test', async () => {
 })
 
 it('infinite query next page test', async () => {
-  const mockFetch = jest.fn((response) => ({ response }))
+  const mockFetch = vi.fn((response: { count: number }) => ({ response }))
   let resolve = () => {}
   const countAtom = atomWithInfiniteQuery<{ response: { count: number } }>(
     () => ({

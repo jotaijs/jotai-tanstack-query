@@ -5,7 +5,7 @@
     "downlevelIteration": true,
     "esModuleInterop": true,
     "module": "es2015",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -13,10 +13,12 @@
     "exactOptionalPropertyTypes": true,
     "jsx": "react",
     "baseUrl": ".",
+    "skipLibCheck": true,
     "paths": {
       "jotai-tanstack-query": ["./src"]
-    }
+    },
+    "types": ["vitest/globals", "jsdom"]
   },
   "include": ["__tests__", "src"],
-  "exclude": ["node_modules", "dist", "webpack.config.js"]
+  "exclude": ["node_modules", "dist"]
 }
