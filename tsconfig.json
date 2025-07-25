@@ -15,7 +15,8 @@
     "baseUrl": ".",
     "paths": {
       "jotai-tanstack-query": ["./src"]
-    }
+    },
+    "types": ["vitest/globals", "jsdom"]
   },
   "include": ["__tests__", "src"],
   "exclude": ["node_modules", "dist", "webpack.config.js"]

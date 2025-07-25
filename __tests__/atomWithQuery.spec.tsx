@@ -4,18 +4,16 @@ import { fireEvent, render } from '@testing-library/react'
 import { Getter, atom, useAtom, useSetAtom } from 'jotai'
 import { unwrap } from 'jotai/utils'
 import { ErrorBoundary } from 'react-error-boundary'
+import { vi } from 'vitest'
 import { atomWithQuery } from '../src'
 
 let originalConsoleError: typeof console.error
 
 beforeEach(() => {
-  jest.useFakeTimers()
   originalConsoleError = console.error
-  console.error = jest.fn()
+  console.error = vi.fn()
 })
 afterEach(() => {
-  jest.runAllTimers()
-  jest.useRealTimers()
   console.error = originalConsoleError
 })
 
@@ -59,8 +57,8 @@ it('query basic test', async () => {
 })
 
 it('async query basic test', async () => {
-  const fn = jest.fn(() => Promise.resolve(2))
-  const queryFn = jest.fn((id) => {
+  const fn = vi.fn(() => Promise.resolve(2))
+  const queryFn = vi.fn((id) => {
     return Promise.resolve({ response: { id } })
   })
 
@@ -108,10 +106,7 @@ it('async query basic test', async () => {
 
 it('query refetch', async () => {
   let count = 0
-  const mockFetch = jest.fn<
-    { response: { count: number } },
-    { count: number }[]
-  >((response) => ({
+  const mockFetch = vi.fn((response: { count: number }) => ({
     response,
   }))
   let resolve = () => {}
@@ -163,9 +158,7 @@ it('query refetch', async () => {
 
 it('query with enabled', async () => {
   const slugAtom = atom<string | null>(null)
-  const mockFetch = jest.fn<{ response: { slug: string } }, { slug: string }[]>(
-    (response) => ({ response })
-  )
+  const mockFetch = vi.fn((response) => ({ response }))
   let resolve = () => {}
   const slugQueryAtom = atomWithQuery((get) => {
     const slug = get(slugAtom)
@@ -232,11 +225,10 @@ it('query with enabled', async () => {
 })
 
 it('query with enabled 2', async () => {
-  const mockFetch = jest.fn<{ response: { slug: string } }, { slug: string }[]>(
-    (response) => ({ response })
-  )
+  const mockFetch = vi.fn((response) => ({ response }))
   const enabledAtom = atom<boolean>(true)
   const slugAtom = atom<string | null>('first')
+  let resolve = () => {}
 
   const slugQueryAtom = atomWithQuery((get: Getter) => {
     const slug = get(slugAtom)
@@ -245,7 +237,7 @@ it('query with enabled 2', async () => {
       enabled: enabled,
       queryKey: ['enabled_toggle'],
       queryFn: async () => {
-        await new Promise<void>((r) => setTimeout(r, 10 * 1000))
+        await new Promise<void>((r) => (resolve = r))
 
         return mockFetch({ slug: `hello-${slug}` })
       },
@@ -304,7 +296,8 @@ it('query with enabled 2', async () => {
     </StrictMode>
   )
 
-  jest.runOnlyPendingTimers()
+  await findByText('loading')
+  resolve()
   await findByText('slug: hello-first')
   expect(mockFetch).toHaveBeenCalledTimes(1)
 
@@ -315,7 +308,9 @@ it('query with enabled 2', async () => {
   expect(mockFetch).toHaveBeenCalledTimes(1)
 
   fireEvent.click(getByText('set enabled'))
-  jest.runOnlyPendingTimers()
+
+  await expect(() => findByText('loading')).rejects.toThrow() //refetch implementation in tanstack doesn't trigger loading state
+  resolve()
   await findByText('slug: hello-world')
   expect(mockFetch).toHaveBeenCalledTimes(2)
 })
@@ -390,7 +385,7 @@ it('query with enabled (#500)', async () => {
 })
 
 it('query with initialData test', async () => {
-  const mockFetch = jest.fn((response: { count: number }) => ({
+  const mockFetch = vi.fn((response: { count: number }) => ({
     response,
   }))
 
@@ -714,7 +709,7 @@ it(`ensure that setQueryData for an inactive query updates its atom state`, asyn
   const extraKey = 'uniqueKey'
   const pageAtom = atom(1)
 
-  const queryFn = jest.fn(() => {
+  const queryFn = vi.fn(() => {
     return Promise.resolve('John Doe')
   })
 

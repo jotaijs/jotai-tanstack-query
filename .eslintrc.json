@@ -20,7 +20,7 @@
     "prettier",
     "react-hooks",
     "import",
-    "jest"
+    "vitest"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -47,7 +47,7 @@
     "@typescript-eslint/no-use-before-define": "off",
     "@typescript-eslint/no-empty-function": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "jest/consistent-test-it": [
+    "vitest/consistent-test-it": [
       "error",
       { "fn": "it", "withinDescribe": "it" }
     ],
@@ -113,7 +113,7 @@
     {
       "files": ["tests/**/*.tsx", "__tests__/**/*"],
       "env": {
-        "jest/globals": true
+        "vitest/env": true
       }
     },
     {
