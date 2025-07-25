@@ -57,7 +57,7 @@ it('infinite query basic test', async () => {
 })
 
 it('infinite query next page test', async () => {
-  const mockFetch = vi.fn((response) => ({ response }))
+  const mockFetch = vi.fn((response: { count: number }) => ({ response }))
   let resolve = () => {}
   const countAtom = atomWithInfiniteQuery<{ response: { count: number } }>(
     () => ({
