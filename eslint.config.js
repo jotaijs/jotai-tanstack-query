@@ -5,7 +5,6 @@ import importPlugin from 'eslint-plugin-import'
 import prettier from 'eslint-plugin-prettier'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
-import vitest from 'eslint-plugin-vitest'
 
 export default [
   js.configs.recommended,
@@ -49,7 +48,6 @@ export default [
       'react-hooks': reactHooks,
       import: importPlugin,
       prettier,
-      vitest,
     },
     rules: {
       // ESLint recommended rules are included via js.configs.recommended
@@ -110,12 +108,6 @@ export default [
       // React hooks rules
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
-
-      // Vitest rules
-      'vitest/consistent-test-it': [
-        'error',
-        { fn: 'it', withinDescribe: 'it' },
-      ],
 
       // Sort imports
       'sort-imports': [
