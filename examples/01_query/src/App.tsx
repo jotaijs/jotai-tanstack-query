@@ -1,11 +1,12 @@
+import { Getter } from 'jotai'
 import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
 import { atomWithQuery } from 'jotai-tanstack-query'
 
 const idAtom = atom(1)
 
-const userAtom = atomWithQuery((get) => ({
-  queryKey: ['users', get(idAtom)],
+const userAtom = atomWithQuery((get: Getter) => ({
+  queryKey: ['users', get(idAtom).toString()],
   queryFn: async ({ queryKey: [, id] }) => {
     const res = await fetch(`https://jsonplaceholder.typicode.com/users/${id}`)
     return res.json()

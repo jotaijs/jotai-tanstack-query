@@ -20,6 +20,7 @@
 - [SSR Support](#ssr-support)
 - [Error Handling](#error-handling)
 - [Dev Tools](#devtools)
+- [FAQ](#faq)
 - [Migrate to v0.8.0](#migrate-to-v080)
 
 ### Support
@@ -477,6 +478,32 @@ export const Root = () => {
     </QueryClientProvider>
   )
 }
+```
+
+## FAQ
+
+### atomsWithQuery `queryKey` type is always `unknown`?
+
+Explicitly declare the `get:Getter` to get proper type inference for `queryKey`.
+
+```tsx
+import { Getter } from 'jotai'
+
+// ❌ Without explicit Getter type, queryKey type might be unknown
+const userAtom = atomWithQuery((get) => ({
+  queryKey: ['users', get(idAtom).toString()],
+  queryFn: async ({ queryKey: [, id] }) => {
+    // typeof id = unknown
+  },
+}))
+
+// ✅ With explicit Getter type, queryKey gets proper type inference
+const userAtom = atomWithQuery((get: Getter) => ({
+  queryKey: ['users', get(idAtom).toString()],
+  queryFn: async ({ queryKey: [, id] }) => {
+    // typeof id = string
+  },
+}))
 ```
 
 ## Migrate to v0.8.0
