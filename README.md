@@ -16,7 +16,7 @@
   - [Suspense](#suspense)
     - [atomWithSuspenseQuery](#atomwithsuspensequery-usage)
     - [atomWithSuspenseInfiniteQuery](#atomwithsuspenseinfinitequery-usage)
-- [QueryClient Instance](#referencing-the-same-instance-of-query-client-in-your-project)
+- [QueryClient Instance](#referencing-the-same-instance-of-query-client)
 - [SSR Support](#ssr-support)
 - [Error Handling](#error-handling)
 - [Dev Tools](#devtools)
@@ -31,27 +31,26 @@ jotai-tanstack-query currently supports TanStack Query v5.
 In addition to `jotai`, you have to install `jotai-tanstack-query` and `@tanstack/query-core` to use the extension.
 
 ```bash
-yarn add jotai-tanstack-query @tanstack/query-core
+npm i jotai-tanstack-query @tanstack/query-core
 ```
 
 ### Incremental Adoption
 
-You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all or nothing solution. You just have to ensure you are using the same QueryClient instance. [QueryClient Setup](#referencing-the-same-instance-of-query-client-in-your-project).
+You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all or nothing solution. You just have to ensure you are using the same QueryClient instance. [same QueryClient](#referencing-the-same-instance-of-query-client).
 
 ```jsx
-# existing useQueryHook
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['todos'],
-    queryFn: fetchTodoList
-  });
+// existing useQueryHook
+const { data, isPending, isError } = useQuery({
+  queryKey: ['todos'],
+  queryFn: fetchTodoList,
+})
 
-# jotai-tanstack-query
-  const todosAtom = atomWithQuery(() => ({
-    queryKey: ['todos'],
-  }))
+// jotai-tanstack-query
+const todosAtom = atomWithQuery(() => ({
+  queryKey: ['todos'],
+}))
 
-  const [{ data, isPending, isError }] = useAtom(todosAtom)
-
+const [{ data, isPending, isError }] = useAtom(todosAtom)
 ```
 
 ### Exported functions
@@ -363,13 +362,13 @@ const Posts = () => {
 }
 ```
 
-### Referencing the same instance of Query Client in your project
+### Referencing the same instance of Query Client
 
-Perhaps you have some custom hooks in your project that utilises the `useQueryClient()` hook to obtain the `QueryClient` object and call its methods.
+Perhaps you have some custom hooks in your project that utilizes the `useQueryClient()` hook to obtain the `QueryClient` object and call its methods.
 
-To ensure that you reference the same `QueryClient` object, be sure to wrap the root of your project in a `<Provider>` and initialise `queryClientAtom` with the same `queryClient` value you provided to `QueryClientProvider`.
+To ensure that you reference the same `QueryClient` object, be sure to wrap the root of your project in a `<Provider>` and initialize `queryClientAtom` with the same `queryClient` value you provided to `QueryClientProvider`.
 
-Without this step, `useQueryAtom` will reference a separate `QueryClient` from any hooks that utilise the `useQueryClient()` hook to get the queryClient.
+Without this step, `useQueryAtom` will reference a separate `QueryClient` from any hooks that utilize the `useQueryClient()` hook to get the queryClient.
 
 Alternatively, you can specify your `queryClient` with `getQueryClient` parameter.
 
@@ -377,9 +376,9 @@ Alternatively, you can specify your `queryClient` with `getQueryClient` paramete
 
 In the example below, we have a mutation hook, `useTodoMutation` and a query `todosAtom`.
 
-We included an initialisation step in our root `<App>` node.
+We included an initialization step in our root `<App>` node.
 
-Although they reference methods same query key (`'todos'`), the `onSuccess` invalidation in `useTodoMutation` will not trigger **if the `Provider` initialisation step was not done.**
+Although they reference methods same query key (`'todos'`), the `onSuccess` invalidation in `useTodoMutation` will not trigger **if the `Provider` initialization step was not done.**
 
 This will result in `todosAtom` showing stale data as it was not prompted to refetch.
 
@@ -405,12 +404,16 @@ export const Root = () => {
   )
 }
 
-export const todosAtom = atomWithQuery((get) => {
-  return {
-    queryKey: ['todos'],
-    queryFn: () => fetch('/todos'),
-  }
-})
+export const todosAtom = atomWithQuery(
+  (get) => {
+    return {
+      queryKey: ["todos"],
+      queryFn: () => fetch("/todos"),
+    }
+  },
+  () => queryClient
+)
+
 
 export const useTodoMutation = () => {
   const queryClient = useQueryClient()
@@ -445,11 +448,7 @@ See [a working example](https://codesandbox.io/s/4gfp6z) to learn more.
 In order to use the Devtools, you need to install it additionally.
 
 ```bash
-$ npm i @tanstack/react-query-devtools
-# or
-$ pnpm add @tanstack/react-query-devtools
-# or
-$ yarn add @tanstack/react-query-devtools
+$ npm i @tanstack/react-query-devtools --save-dev
 ```
 
 All you have to do is put the `<ReactQueryDevtools />` within `<QueryClientProvider />`.

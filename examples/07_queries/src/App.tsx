@@ -1,4 +1,3 @@
-import React from 'react'
 import { Atom, atom } from 'jotai'
 import { useAtom } from 'jotai/react'
 import { type AtomWithQueryResult, atomWithQueries } from 'jotai-tanstack-query'

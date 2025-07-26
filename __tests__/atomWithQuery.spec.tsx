@@ -35,7 +35,7 @@ it('query basic test', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return (
@@ -83,7 +83,7 @@ it('async query basic test', async () => {
     const { data, isPending, isError } = userData
 
     if (isPending) return <>loading</>
-    if (isError) return <>errorred</>
+    if (isError) return <>errored</>
 
     return (
       <>
@@ -127,7 +127,7 @@ it('query refetch', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return (
@@ -187,7 +187,7 @@ it('query with enabled', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return <div>slug: {data.response.slug}</div>
@@ -257,7 +257,7 @@ it('query with enabled 2', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
     return <div>slug: {data.response.slug}</div>
   }
@@ -340,7 +340,7 @@ it('query with enabled (#500)', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return <div>count: {data.response.count}</div>
@@ -452,7 +452,7 @@ it('query dependency test', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return (
@@ -507,7 +507,7 @@ it('query expected QueryCache test', async () => {
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return (
@@ -673,7 +673,7 @@ it('renews the result when the query changes and a non stale cache is available'
     }
 
     if (isError) {
-      return <>errorred</>
+      return <>errored</>
     }
 
     return (

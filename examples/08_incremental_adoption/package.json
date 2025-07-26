@@ -1,0 +1,25 @@
+{
+  "name": "jotai-tanstack-query-example-incremental-adoption",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@tanstack/query-core": "latest",
+    "@tanstack/react-query": "latest",
+    "jotai": "latest",
+    "jotai-tanstack-query": "*",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

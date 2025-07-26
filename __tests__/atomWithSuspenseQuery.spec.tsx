@@ -110,7 +110,7 @@ describe('intialData test', () => {
       const { data, isError } = countData
 
       if (isError) {
-        return <>errorred</>
+        return <>errored</>
       }
 
       const count = data?.response.count
@@ -154,7 +154,7 @@ describe('intialData test', () => {
       const [countData] = useAtom(countAtom)
       const { data, isError } = countData
       if (isError) {
-        return <>errorred</>
+        return <>errored</>
       }
       const count = data?.response.count
       return (
