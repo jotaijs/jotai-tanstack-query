@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
-import { ErrorBoundary, FallbackProps } from 'react-error-boundary'
-import { atom, useSetAtom, useAtom } from 'jotai'
+import { atom, useAtom, useSetAtom } from 'jotai'
 import { atomWithSuspenseQuery } from 'jotai-tanstack-query'
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary'
 
 const idAtom = atom(1)
 const userAtom = atomWithSuspenseQuery<User>((get) => ({
