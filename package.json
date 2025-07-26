@@ -51,7 +51,8 @@
     "examples:05_mutation": "pnpm --filter ./examples/05_mutation run dev",
     "examples:06_refetch": "pnpm --filter ./examples/06_refetch run dev",
     "examples:07_queries": "pnpm --filter ./examples/07_queries run dev",
-    "examples:08_incremental_adoption": "pnpm --filter ./examples/08_incremental_adoption run dev"
+    "examples:08_incremental_adoption": "pnpm --filter ./examples/08_incremental_adoption run dev",
+    "examples:09_error_boundary": "pnpm --filter ./examples/09_error_boundary run dev"
   },
   "keywords": [
     "jotai",

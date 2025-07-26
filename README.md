@@ -441,7 +441,7 @@ All atoms can be used within the context of a server side rendered app, such as 
 Fetch error will be thrown and can be caught with ErrorBoundary.
 Refetching may recover from a temporary error.
 
-See [a working example](https://codesandbox.io/s/4gfp6z) to learn more.
+See [a working example](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/09_error_boundary) to learn more.
 
 ### Devtools
 

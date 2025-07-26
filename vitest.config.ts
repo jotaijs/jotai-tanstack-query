@@ -6,6 +6,7 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: [],
+    projects: ['vitest.config.ts'],
     include: ['__tests__/**/*.spec.tsx'],
     testTimeout: 10000, // Increase timeout for tests with fake timers
   },
