@@ -88,6 +88,8 @@ const [{ data, isPending, isError }] = useAtom(todosAtom)
 
 ### Exported provider
 
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/08_query_client_atom_provider)
+
 `QueryClientAtomProvider` is a ready-to-use wrapper that combines Jotai Provider and TanStack Query QueryClientProvider.
 
 ```jsx
