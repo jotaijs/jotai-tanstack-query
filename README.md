@@ -6,7 +6,9 @@
 
 - [Support](#support)
 - [Install](#install)
+- [Usage](#usage)
 - [Incremental Adoption](#incremental-adoption)
+- [Exported Provider](#exported-provider)
 - [Exported Functions](#exported-functions)
   - [atomWithQuery](#atomwithquery-usage)
   - [atomWithQueries](#atomwithqueries-usage)
@@ -16,7 +18,6 @@
   - [Suspense](#suspense)
     - [atomWithSuspenseQuery](#atomwithsuspensequery-usage)
     - [atomWithSuspenseInfiniteQuery](#atomwithsuspenseinfinitequery-usage)
-- [QueryClient Instance](#referencing-the-same-instance-of-query-client)
 - [SSR Support](#ssr-support)
 - [Error Handling](#error-handling)
 - [Dev Tools](#devtools)
@@ -25,19 +26,50 @@
 
 ### Support
 
-jotai-tanstack-query currently supports TanStack Query v5.
+jotai-tanstack-query currently supports [Jotai v2](https://jotai.org) and [TanStack Query v5](https://tanstack.com/query/v5).
 
 ### Install
 
-In addition to `jotai`, you have to install `jotai-tanstack-query` and `@tanstack/query-core` to use the extension.
-
 ```bash
-npm i jotai-tanstack-query @tanstack/query-core
+npm i jotai jotai-tanstack-query @tanstack/react-query
+```
+
+### Usage
+
+```jsx
+import { QueryClient } from '@tanstack/react-query'
+import { useAtom } from 'jotai'
+import { atomWithQuery } from 'jotai-tanstack-query'
+import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
+
+const queryClient = new QueryClient()
+
+export const Root = () => {
+  return (
+    <QueryClientAtomProvider client={queryClient}>
+      <App />
+    </QueryClientAtomProvider>
+  )
+}
+
+const todosAtom = atomWithQuery(() => ({
+  queryKey: ['todos'],
+  queryFn: fetchTodoList,
+}))
+
+const App = () => {
+  const [{ data, isPending, isError }] = useAtom(todosAtom)
+
+  if (isPending) return <div>Loading...</div>
+  if (isError) return <div>Error</div>
+
+  return <div>{JSON.stringify(data)}</div>
+}
 ```
 
 ### Incremental Adoption
 
-You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all or nothing solution. You just have to ensure you are using the same QueryClient instance. [same QueryClient](#referencing-the-same-instance-of-query-client).
+You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all or nothing solution. You just have to ensure you are using the [same QueryClient instance](#exported-provider).
 
 ```jsx
 // existing useQueryHook
@@ -52,6 +84,59 @@ const todosAtom = atomWithQuery(() => ({
 }))
 
 const [{ data, isPending, isError }] = useAtom(todosAtom)
+```
+
+### Exported provider
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/08_query_client_atom_provider)
+
+`QueryClientAtomProvider` is a ready-to-use wrapper that combines Jotai Provider and TanStack Query QueryClientProvider.
+
+```jsx
+import { QueryClient } from '@tanstack/react-query'
+import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
+
+const queryClient = new QueryClient()
+
+export const Root = () => {
+  return (
+    <QueryClientAtomProvider client={queryClient}>
+      <App />
+    </QueryClientAtomProvider>
+  )
+}
+```
+
+Yes, you can absolutely combine them yourself.
+
+```diff
+- import { QueryClient } from '@tanstack/react-query'
+- import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
++ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
++ import { Provider } from 'jotai/react'
++ import { useHydrateAtoms } from 'jotai/react/utils'
++ import { queryClientAtom } from 'jotai-tanstack-query'
+
+const queryClient = new QueryClient()
+
++ const HydrateAtoms = ({ children }) => {
++  useHydrateAtoms([[queryClientAtom, queryClient]])
++  return children
++ }
+
+export const Root = () => {
+  return (
+-    <QueryClientAtomProvider client={queryClient}>
++    <QueryClientProvider client={queryClient}>
++      <Provider>
++        <HydrateAtoms>
+          <App />
++        </HydrateAtoms>
++      </Provider>
++    </QueryClientProvider>
+-    </QueryClientAtomProvider>
+  )
+}
 ```
 
 ### Exported functions
@@ -363,76 +448,6 @@ const Posts = () => {
 }
 ```
 
-### Referencing the same instance of Query Client
-
-Perhaps you have some custom hooks in your project that utilizes the `useQueryClient()` hook to obtain the `QueryClient` object and call its methods.
-
-To ensure that you reference the same `QueryClient` object, be sure to wrap the root of your project in a `<Provider>` and initialize `queryClientAtom` with the same `queryClient` value you provided to `QueryClientProvider`.
-
-Without this step, `useQueryAtom` will reference a separate `QueryClient` from any hooks that utilize the `useQueryClient()` hook to get the queryClient.
-
-Alternatively, you can specify your `queryClient` with `getQueryClient` parameter.
-
-#### Example
-
-In the example below, we have a mutation hook, `useTodoMutation` and a query `todosAtom`.
-
-We included an initialization step in our root `<App>` node.
-
-Although they reference methods same query key (`'todos'`), the `onSuccess` invalidation in `useTodoMutation` will not trigger **if the `Provider` initialization step was not done.**
-
-This will result in `todosAtom` showing stale data as it was not prompted to refetch.
-
-```jsx
-import { Provider } from 'jotai/react'
-import {
-  useMutation,
-  useQueryClient,
-  QueryClient,
-} from '@tanstack/react-query'
-import { atomWithQuery, queryClientAtom } from 'jotai-tanstack-query'
-import { QueryClientProvider } from 'jotai-tanstack-query/react'
-
-const queryClient = new QueryClient()
-
-export const Root = () => {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Provider>
-        <App />
-      </Provider>
-    </QueryClientProvider>
-  )
-}
-
-export const todosAtom = atomWithQuery(
-  (get) => {
-    return {
-      queryKey: ["todos"],
-      queryFn: () => fetch("/todos"),
-    }
-  },
-  () => queryClient
-)
-
-
-export const useTodoMutation = () => {
-  const queryClient = useQueryClient()
-
-  return useMutation(
-    async (body: todo) => {
-      await fetch('/todo', { Method: 'POST', Body: body })
-    },
-    {
-      onSuccess: () => {
-        void queryClient.invalidateQueries(['todos'])
-      },
-      onError,
-    }
-  )
-}
-```
-
 ### SSR support
 
 All atoms can be used within the context of a server side rendered app, such as a next.js app or Gatsby app. You can [use both options](https://tanstack.com/query/v5/docs/guides/ssr) that React Query supports for use within SSR apps, [hydration](https://tanstack.com/query/v5/docs/react/guides/ssr#using-the-hydration-apis) or [`initialData`](https://tanstack.com/query/v5/docs/react/guides/ssr#get-started-fast-with-initialdata).
@@ -452,30 +467,21 @@ In order to use the Devtools, you need to install it additionally.
 $ npm i @tanstack/react-query-devtools --save-dev
 ```
 
-All you have to do is put the `<ReactQueryDevtools />` within `<QueryClientProvider />`.
+All you have to do is put the `<ReactQueryDevtools />` within `<QueryClientAtomProvider />`.
 
 ```tsx
 import { QueryClient, QueryCache } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { QueryClientProvider } from 'jotai-tanstack-query/react'
-import { queryClientAtom } from 'jotai-tanstack-query'
+import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: Infinity,
-    },
-  },
-})
+const queryClient = new QueryClient()
 
 export const Root = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider>
-        <App />
-      </Provider>
+    <QueryClientAtomProvider client={queryClient}>
+      <App />
       <ReactQueryDevtools />
-    </QueryClientProvider>
+    </QueryClientAtomProvider>
   )
 }
 ```
