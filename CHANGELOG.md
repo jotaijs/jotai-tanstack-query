@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2025-08-01
+
+### Changed
+
+- feat: `QueryClientAtomProvider` is a ready-to-use wrapper that combines Jotai Provider and TanStack Query QueryClientProvider.
+- breaking: removed `QueryClientProvider`
+
 ## [0.10.1] - 2025-07-24
 
 ### Changed
