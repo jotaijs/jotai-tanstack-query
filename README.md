@@ -107,30 +107,34 @@ export const Root = () => {
 }
 ```
 
-without QueryClientAtomProvider
+Yes, you can absolutely combine them yourself.
 
-```js
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { Provider } from 'jotai/react'
-import { useHydrateAtoms } from 'jotai/react/utils'
-import { queryClientAtom } from 'jotai-tanstack-query'
+```diff
+- import { QueryClient } from '@tanstack/react-query'
+- import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
++ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
++ import { Provider } from 'jotai/react'
++ import { useHydrateAtoms } from 'jotai/react/utils'
++ import { queryClientAtom } from 'jotai-tanstack-query'
 
 const queryClient = new QueryClient()
 
-const HydrateAtoms = ({ children }) => {
-  useHydrateAtoms([[queryClientAtom, queryClient]])
-  return children
-}
++ const HydrateAtoms = ({ children }) => {
++  useHydrateAtoms([[queryClientAtom, queryClient]])
++  return children
++ }
 
 export const Root = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Provider>
-        <HydrateAtoms>
+-    <QueryClientAtomProvider client={queryClient}>
++    <QueryClientProvider client={queryClient}>
++      <Provider>
++        <HydrateAtoms>
           <App />
-        </HydrateAtoms>
-      </Provider>
-    </QueryClientProvider>
++        </HydrateAtoms>
++      </Provider>
++    </QueryClientProvider>
+-    </QueryClientAtomProvider>
   )
 }
 ```
