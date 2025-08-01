@@ -1,8 +1,8 @@
 import { QueryClient, useQuery } from '@tanstack/react-query'
-import { Provider, useAtom } from 'jotai/react'
+import { useAtom } from 'jotai/react'
 import { atom } from 'jotai/vanilla'
 import { atomWithQuery } from 'jotai-tanstack-query'
-import { QueryClientProvider } from 'jotai-tanstack-query/react'
+import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
 
 const queryClient = new QueryClient()
 
@@ -85,13 +85,11 @@ const Controls = () => {
 
 const App = () => (
   <>
-    <QueryClientProvider client={queryClient}>
-      <Provider>
-        <Controls />
-        <UserDataRawFetch />
-        <UserData />
-      </Provider>
-    </QueryClientProvider>
+    <QueryClientAtomProvider client={queryClient}>
+      <Controls />
+      <UserDataRawFetch />
+      <UserData />
+    </QueryClientAtomProvider>
   </>
 )
 

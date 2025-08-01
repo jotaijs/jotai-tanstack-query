@@ -1,5 +1,5 @@
 {
-  "name": "jotai-tanstack-query-example-incremental-adoption",
+  "name": "jotai-tanstack-query-example-query-client-atom-provider",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
