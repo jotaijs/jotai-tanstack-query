@@ -104,6 +104,7 @@ const Data = ({
 
   if (isPending) return <div>Loading...</div>
   if (isError) return <div>Error</div>
+  if (!data) return null
 
   return <UserDisplay user={data} />
 }
@@ -124,11 +125,10 @@ const Controls = () => {
     <div>
       <div>User IDs: {userIds.join(', ')} </div>
       <button
-        onClick={() =>
-          setUserIds(
-            Array.from({ length: 3 }, () => Math.floor(Math.random() * 10) + 1)
-          )
-        }>
+        onClick={() => {
+          const n = Math.floor(Math.random() * 8)
+          setUserIds([n + 1, n + 2, n + 3])
+        }}>
         Random
       </button>
     </div>
