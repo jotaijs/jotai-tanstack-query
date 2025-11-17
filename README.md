@@ -340,7 +340,24 @@ const Posts = () => {
 
 > Unlike queries, mutations are typically used to create/update/delete data or perform server side-effects.
 
+`atomWithMutation` supports all options from TanStack Query's [`useMutation`](https://tanstack.com/query/v5/docs/react/reference/useMutation), including:
+- `mutationKey` - A unique key for the mutation
+- `mutationFn` - The function that performs the mutation
+- `onMutate` - Called before the mutation is executed (useful for optimistic updates)
+- `onSuccess` - Called when the mutation succeeds
+- `onError` - Called when the mutation fails
+- `onSettled` - Called when the mutation is settled (either success or error)
+- `retry` - Number of retry attempts
+- `retryDelay` - Delay between retries
+- `gcTime` - Time until inactive mutations are garbage collected
+- And all other [MutationOptions](https://tanstack.com/query/v5/docs/react/reference/useMutation#options)
+
+#### Basic usage
+
 ```tsx
+import { useAtom } from 'jotai/react'
+import { atomWithMutation } from 'jotai-tanstack-query'
+
 const postAtom = atomWithMutation(() => ({
   mutationKey: ['posts'],
   mutationFn: async ({ title }: { title: string }) => {
@@ -361,15 +378,163 @@ const postAtom = atomWithMutation(() => ({
 }))
 
 const Posts = () => {
-  const [{ mutate, status }] = useAtom(postAtom)
+  const [{ mutate, isPending, status }] = useAtom(postAtom)
   return (
     <div>
-      <button onClick={() => mutate({ title: 'foo' })}>Click me</button>
+      <button onClick={() => mutate({ title: 'foo' })} disabled={isPending}>
+        {isPending ? 'Creating...' : 'Create Post'}
+      </button>
       <pre>{JSON.stringify(status, null, 2)}</pre>
     </div>
   )
 }
 ```
+
+#### Optimistic Updates
+
+`atomWithMutation` fully supports optimistic updates through the `onMutate`, `onError`, and `onSettled` callbacks. This allows you to update the UI immediately before the server responds, and roll back if the mutation fails.
+
+```tsx
+import { Getter } from 'jotai'
+import { useAtom } from 'jotai/react'
+import { atomWithMutation, atomWithQuery, queryClientAtom } from 'jotai-tanstack-query'
+
+interface Post {
+  id: number
+  title: string
+  body: string
+  userId: number
+}
+
+interface NewPost {
+  title: string
+}
+
+interface OptimisticContext {
+  previousPosts: Post[] | undefined
+}
+
+// Query to fetch posts list
+const postsQueryAtom = atomWithQuery(() => ({
+  queryKey: ['posts'],
+  queryFn: async () => {
+    const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5')
+    return res.json() as Promise<Post[]>
+  },
+}))
+
+// Mutation with optimistic updates
+const postAtom = atomWithMutation<Post, NewPost, Error, OptimisticContext>(
+  (get) => {
+    const queryClient = get(queryClientAtom)
+    return {
+      mutationKey: ['addPost'],
+      mutationFn: async ({ title }: NewPost) => {
+        const res = await fetch(`https://jsonplaceholder.typicode.com/posts`, {
+          method: 'POST',
+          body: JSON.stringify({
+            title,
+            body: 'body',
+            userId: 1,
+          }),
+          headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+          },
+        })
+        const data = await res.json()
+        return data as Post
+      },
+      // When mutate is called:
+      onMutate: async (newPost: NewPost) => {
+        // Cancel any outgoing refetches
+        // (so they don't overwrite our optimistic update)
+        await queryClient.cancelQueries({ queryKey: ['posts'] })
+
+        // Snapshot the previous value
+        const previousPosts = queryClient.getQueryData<Post[]>(['posts'])
+
+        // Optimistically update to the new value
+        queryClient.setQueryData<Post[]>(['posts'], (old) => {
+          const optimisticPost: Post = {
+            id: Date.now(), // Temporary ID
+            title: newPost.title,
+            body: 'body',
+            userId: 1,
+          }
+          return old ? [...old, optimisticPost] : [optimisticPost]
+        })
+
+        // Return a result with the snapshotted value
+        return { previousPosts }
+      },
+      // If the mutation fails, use the result returned from onMutate to roll back
+      onError: (
+        _err: Error,
+        _newPost: NewPost,
+        onMutateResult: OptimisticContext | undefined
+      ) => {
+        if (onMutateResult?.previousPosts) {
+          queryClient.setQueryData(['posts'], onMutateResult.previousPosts)
+        }
+      },
+      // Always refetch after error or success:
+      onSettled: (
+        _data: Post | undefined,
+        _error: Error | null,
+        _variables: NewPost,
+        _onMutateResult: OptimisticContext | undefined
+      ) => {
+        queryClient.invalidateQueries({ queryKey: ['posts'] })
+      },
+    }
+  }
+)
+
+const PostsList = () => {
+  const [{ data: posts, isPending }] = useAtom(postsQueryAtom)
+
+  if (isPending) return <div>Loading posts...</div>
+
+  return (
+    <div>
+      <h3>Posts:</h3>
+      <ul>
+        {posts?.map((post: Post) => (
+          <li key={post.id}>{post.title}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+const AddPost = () => {
+  const [{ mutate, isPending }] = useAtom(postAtom)
+  const [title, setTitle] = React.useState('')
+
+  return (
+    <div>
+      <input
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder="Enter post title"
+      />
+      <button
+        onClick={() => {
+          if (title) {
+            mutate({ title })
+            setTitle('')
+          }
+        }}
+        disabled={isPending}
+      >
+        {isPending ? 'Adding...' : 'Add Post'}
+      </button>
+    </div>
+  )
+}
+```
+
+For more details on optimistic updates, see the [TanStack Query Optimistic Updates guide](https://tanstack.com/query/v5/docs/framework/react/guides/optimistic-updates).
 
 ### atomWithMutationState usage
 
