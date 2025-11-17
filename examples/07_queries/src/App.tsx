@@ -10,10 +10,9 @@ interface User {
   email: string
 }
 
-const UsersData = () => {
-  const [userIds] = useAtom(userIdsAtom)
-
-  const userQueryAtoms = atomWithQueries<User>({
+const userQueryAtomsAtom = atom((get) => {
+  const userIds = get(userIdsAtom)
+  return atomWithQueries<User>({
     queries: userIds.map((id) => () => ({
       queryKey: ['user', id],
       queryFn: async ({ queryKey: [, userId] }) => {
@@ -24,6 +23,10 @@ const UsersData = () => {
       },
     })),
   })
+})
+
+const UsersData = () => {
+  const [userQueryAtoms] = useAtom(userQueryAtomsAtom)
   return (
     <div>
       <h3>Users: </h3>
@@ -36,10 +39,9 @@ const UsersData = () => {
   )
 }
 
-const CombinedUsersData = () => {
-  const [userIds] = useAtom(userIdsAtom)
-
-  const combinedUsersDataAtom = atomWithQueries<{
+const combinedUsersDataAtom = atom((get) => {
+  const userIds = get(userIdsAtom)
+  return atomWithQueries<{
     data: User[]
     isPending: boolean
     isError: boolean
@@ -61,36 +63,24 @@ const CombinedUsersData = () => {
       }
     },
   })
+})
+
+const CombinedUsersData = () => {
+  const [combinedUsersDataAtomValue] = useAtom(combinedUsersDataAtom)
+  const [{ data, isPending, isError }] = useAtom(combinedUsersDataAtomValue)
 
   return (
     <div>
       <h3>Users: (combinedQueries)</h3>
-      <div>
-        <CombinedData queryAtom={combinedUsersDataAtom} />
-      </div>
-    </div>
-  )
-}
-
-const CombinedData = ({
-  queryAtom,
-}: {
-  queryAtom: Atom<{
-    data: User[]
-    isPending: boolean
-    isError: boolean
-  }>
-}) => {
-  const [{ data, isPending, isError }] = useAtom(queryAtom)
-
-  if (isPending) return <div>Loading...</div>
-  if (isError) return <div>Error</div>
-
-  return (
-    <div>
-      {data.map((user) => (
-        <UserDisplay key={user.id} user={user} />
-      ))}
+      {isPending && <div>Loading...</div>}
+      {isError && <div>Error</div>}
+      {!isPending && !isError && (
+        <div>
+          {data.map((user) => (
+            <UserDisplay key={user.id} user={user} />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

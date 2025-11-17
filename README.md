@@ -198,15 +198,15 @@ There are two ways to use `atomWithQueries`:
 #### Basic usage - Returns an array of query atoms
 
 ```jsx
-import { atom, useAtom } from 'jotai'
-import { atomWithQueries } from 'jotai-tanstack-query'
+import { Atom, atom, useAtom } from 'jotai'
+import { type AtomWithQueryResult, atomWithQueries } from 'jotai-tanstack-query'
 
 const userIdsAtom = atom([1, 2, 3])
 
-const UsersData = () => {
-  const [userIds] = useAtom(userIdsAtom)
-
-  const userQueryAtoms = atomWithQueries({
+// Independent atom - encapsulates query logic
+const userQueryAtomsAtom = atom((get) => {
+  const userIds = get(userIdsAtom)
+  return atomWithQueries({
     queries: userIds.map((id) => () => ({
       queryKey: ['user', id],
       queryFn: async ({ queryKey: [, userId] }) => {
@@ -217,7 +217,26 @@ const UsersData = () => {
       },
     })),
   })
+})
 
+// Independent UI component
+const UserData = ({ queryAtom }: { queryAtom: Atom<AtomWithQueryResult> }) => {
+  const [{ data, isPending, isError }] = useAtom(queryAtom)
+
+  if (isPending) return <div>Loading...</div>
+  if (isError) return <div>Error</div>
+  if (!data) return null
+
+  return (
+    <div>
+      {data.name} - {data.email}
+    </div>
+  )
+}
+
+// Component only needs one useAtom call
+const UsersData = () => {
+  const [userQueryAtoms] = useAtom(userQueryAtomsAtom)
   return (
     <div>
       {userQueryAtoms.map((queryAtom, index) => (
@@ -226,33 +245,20 @@ const UsersData = () => {
     </div>
   )
 }
-
-const UserData = ({ queryAtom }) => {
-  const [{ data, isPending, isError }] = useAtom(queryAtom)
-
-  if (isPending) return <div>Loading...</div>
-  if (isError) return <div>Error</div>
-
-  return (
-    <div>
-      {data.name} - {data.email}
-    </div>
-  )
-}
 ```
 
 #### Advanced usage - Combine multiple query results
 
 ```jsx
-import { atom, useAtom } from 'jotai'
+import { Atom, atom, useAtom } from 'jotai'
 import { atomWithQueries } from 'jotai-tanstack-query'
 
 const userIdsAtom = atom([1, 2, 3])
 
-const CombinedUsersData = () => {
-  const [userIds] = useAtom(userIdsAtom)
-
-  const combinedUsersDataAtom = atomWithQueries({
+// Independent atom - encapsulates combined query logic
+const combinedUsersDataAtom = atom((get) => {
+  const userIds = get(userIdsAtom)
+  return atomWithQueries({
     queries: userIds.map((id) => () => ({
       queryKey: ['user', id],
       queryFn: async ({ queryKey: [, userId] }) => {
@@ -268,8 +274,12 @@ const CombinedUsersData = () => {
       isError: results.some((result) => result.isError),
     }),
   })
+})
 
-  const [{ data, isPending, isError }] = useAtom(combinedUsersDataAtom)
+// Component only needs one useAtom call
+const CombinedUsersData = () => {
+  const [combinedUsersDataAtomValue] = useAtom(combinedUsersDataAtom)
+  const [{ data, isPending, isError }] = useAtom(combinedUsersDataAtomValue)
 
   if (isPending) return <div>Loading...</div>
   if (isError) return <div>Error</div>
