@@ -1,8 +1,8 @@
 // app/posts/[postId]/page.tsx
 import {
-  dehydrate,
   HydrationBoundary,
   QueryClient,
+  dehydrate,
 } from '@tanstack/react-query'
 import { Post } from './_components/post'
 

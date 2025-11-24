@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
-import { getPost } from './posts/[postId]/page'
 import { atomWithQuery } from 'jotai-tanstack-query'
+import { getPost } from './posts/[postId]/page'
 
 export const postIdAtom = atom<string>('1')
 export const postQueryAtom = atomWithQuery((get) => ({

@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
-import { useAtomValue, useSetAtom } from 'jotai'
-import { postIdAtom, postQueryAtom } from '../../../stores'
 import { useEffect } from 'react'
+import { useAtomValue, useSetAtom } from 'jotai'
+import Link from 'next/link'
+import { postIdAtom, postQueryAtom } from '../../../stores'
 
 export const Post = ({ postId }: { postId: string }) => {
   const setPostIdValue = useSetAtom(postIdAtom)

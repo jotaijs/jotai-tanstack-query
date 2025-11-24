@@ -2,11 +2,12 @@
 'use client'
 
 // Since QueryClientProvider relies on useContext under the hood, we have to put 'use client' on top
+import type { ReactNode } from 'react'
 import {
-  isServer,
   QueryClient,
   QueryClientProvider,
   QueryClientProviderProps,
+  isServer,
 } from '@tanstack/react-query'
 import { Provider } from 'jotai/react'
 import { useHydrateAtoms } from 'jotai/react/utils'
@@ -44,7 +45,7 @@ function getQueryClient() {
   }
 }
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+export default function Providers({ children }: { children: ReactNode }) {
   // NOTE: Avoid useState when initializing the query client if you don't
   //       have a suspense boundary between this and the code that may
   //       suspend because React will throw away the client on the initial
