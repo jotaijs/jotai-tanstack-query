@@ -6,8 +6,16 @@ import {
   isServer,
   QueryClient,
   QueryClientProvider,
+  QueryClientProviderProps,
 } from '@tanstack/react-query'
+import { Provider } from 'jotai/react'
+import { useHydrateAtoms } from 'jotai/react/utils'
+import { queryClientAtom } from 'jotai-tanstack-query'
 
+const HydrateAtoms = ({ client, children }: QueryClientProviderProps) => {
+  useHydrateAtoms(new Map([[queryClientAtom, client]]))
+  return children
+}
 function makeQueryClient() {
   return new QueryClient({
     defaultOptions: {
@@ -44,6 +52,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient()
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <Provider>
+        <HydrateAtoms client={queryClient}>{children}</HydrateAtoms>
+      </Provider>
+    </QueryClientProvider>
   )
 }

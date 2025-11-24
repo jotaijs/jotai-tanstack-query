@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.90.10",
+    "jotai": "^2.15.1",
+    "jotai-tanstack-query": "workspace:*",
     "next": "16.0.3",
     "react": "19.2.0",
     "react-dom": "19.2.0"
