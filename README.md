@@ -39,7 +39,7 @@ npm i jotai jotai-tanstack-query @tanstack/react-query
 
 ```jsx
 import { QueryClient } from '@tanstack/react-query'
-import { useAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 import { atomWithQuery } from 'jotai-tanstack-query'
 import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
 
@@ -59,7 +59,7 @@ const todosAtom = atomWithQuery(() => ({
 }))
 
 const App = () => {
-  const [{ data, isPending, isError }] = useAtom(todosAtom)
+  const { data, isPending, isError } = useAtomValue(todosAtom)
 
   if (isPending) return <div>Loading...</div>
   if (isError) return <div>Error</div>
@@ -73,7 +73,7 @@ const App = () => {
 You can incrementally adopt `jotai-tanstack-query` in your app. It's not an all or nothing solution. You just have to ensure you are using the [same QueryClient instance](#exported-provider).
 
 ```jsx
-// existing useQueryHook
+// TanStack/Query
 const { data, isPending, isError } = useQuery({
   queryKey: ['todos'],
   queryFn: fetchTodoList,
@@ -84,7 +84,7 @@ const todosAtom = atomWithQuery(() => ({
   queryKey: ['todos'],
 }))
 
-const [{ data, isPending, isError }] = useAtom(todosAtom)
+const { data, isPending, isError } = useAtomValue(todosAtom)
 ```
 
 ### Exported provider
@@ -110,32 +110,28 @@ export const Root = () => {
 
 Yes, you can absolutely combine them yourself.
 
-```diff
-- import { QueryClient } from '@tanstack/react-query'
-- import { QueryClientAtomProvider } from 'jotai-tanstack-query/react'
-+ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-+ import { Provider } from 'jotai/react'
-+ import { useHydrateAtoms } from 'jotai/react/utils'
-+ import { queryClientAtom } from 'jotai-tanstack-query'
+```js
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { Provider } from 'jotai/react'
+import { queryClientAtom } from 'jotai-tanstack-query'
+import { useHydrateAtoms } from 'jotai/react/utils'
 
 const queryClient = new QueryClient()
 
-+ const HydrateAtoms = ({ children }) => {
-+  useHydrateAtoms([[queryClientAtom, queryClient]])
-+  return children
-+ }
+const HydrateAtoms = ({ children }) => {
+  useHydrateAtoms([[queryClientAtom, queryClient]])
+  return children
+}
 
 export const Root = () => {
   return (
--    <QueryClientAtomProvider client={queryClient}>
-+    <QueryClientProvider client={queryClient}>
-+      <Provider>
-+        <HydrateAtoms>
+    <QueryClientProvider client={queryClient}>
+      <Provider>
+        <HydrateAtoms>
           <App />
-+        </HydrateAtoms>
-+      </Provider>
-+    </QueryClientProvider>
--    </QueryClientAtomProvider>
+        </HydrateAtoms>
+      </Provider>
+    </QueryClientProvider>
   )
 }
 ```
