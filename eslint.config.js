@@ -174,6 +174,6 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', 'src/vendor/**', 'node_modules/**'],
+    ignores: ['dist/**', 'src/vendor/**', 'node_modules/**', '**/.next/**'],
   },
 ]
