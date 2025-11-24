@@ -5,14 +5,7 @@ import {
   dehydrate,
 } from '@tanstack/react-query'
 import { Post } from './_components/post'
-
-export async function getPost(postId: string) {
-  console.debug('getPost called with postId:', postId)
-  const res = await fetch(
-    `https://jsonplaceholder.typicode.com/posts/${postId}`
-  )
-  return res.json()
-}
+import { getPost } from '@/app/api'
 
 export default async function PostPage({
   params,
