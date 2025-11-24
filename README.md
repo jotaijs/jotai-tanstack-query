@@ -19,6 +19,7 @@
     - [atomWithSuspenseQuery](#atomwithsuspensequery-usage)
     - [atomWithSuspenseInfiniteQuery](#atomwithsuspenseinfinitequery-usage)
 - [SSR Support](#ssr-support)
+  - [Next.js App Router Example](#nextjs-app-router-example)
 - [Error Handling](#error-handling)
 - [Dev Tools](#devtools)
 - [FAQ](#faq)
@@ -351,6 +352,7 @@ const Posts = () => {
 > Unlike queries, mutations are typically used to create/update/delete data or perform server side-effects.
 
 `atomWithMutation` supports all options from TanStack Query's [`useMutation`](https://tanstack.com/query/v5/docs/react/reference/useMutation), including:
+
 - `mutationKey` - A unique key for the mutation
 - `mutationFn` - The function that performs the mutation
 - `onMutate` - Called before the mutation is executed (useful for optimistic updates)
@@ -407,7 +409,11 @@ const Posts = () => {
 ```tsx
 import { Getter } from 'jotai'
 import { useAtom } from 'jotai/react'
-import { atomWithMutation, atomWithQuery, queryClientAtom } from 'jotai-tanstack-query'
+import {
+  atomWithMutation,
+  atomWithQuery,
+  queryClientAtom,
+} from 'jotai-tanstack-query'
 
 interface Post {
   id: number
@@ -428,7 +434,9 @@ interface OptimisticContext {
 const postsQueryAtom = atomWithQuery(() => ({
   queryKey: ['posts'],
   queryFn: async () => {
-    const res = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=5')
+    const res = await fetch(
+      'https://jsonplaceholder.typicode.com/posts?_limit=5'
+    )
     return res.json() as Promise<Post[]>
   },
 }))
@@ -535,8 +543,7 @@ const AddPost = () => {
             setTitle('')
           }
         }}
-        disabled={isPending}
-      >
+        disabled={isPending}>
         {isPending ? 'Adding...' : 'Add Post'}
       </button>
     </div>
@@ -625,7 +632,13 @@ const Posts = () => {
 
 ### SSR support
 
-All atoms can be used within the context of a server side rendered app, such as a next.js app or Gatsby app. You can [use both options](https://tanstack.com/query/v5/docs/guides/ssr) that React Query supports for use within SSR apps, [hydration](https://tanstack.com/query/v5/docs/react/guides/ssr#using-the-hydration-apis) or [`initialData`](https://tanstack.com/query/v5/docs/react/guides/ssr#get-started-fast-with-initialdata).
+To understand if your application can benefit from React Query when also using Server Components, see the article [You Might Not Need React Query](https://tkdodo.eu/blog/you-might-not-need-react-query).
+
+All atoms can be used within the context of a server side rendered app, such as a next.js app or Gatsby app. You can [use both options](https://tanstack.com/query/v5/docs/framework/react/guides/ssr) that React Query supports for use within SSR apps, [hydration](https://tanstack.com/query/v5/docs/framework/react/guides/ssr#using-the-hydration-apis) or [`initialData`](https://tanstack.com/query/v5/docs/framework/react/guides/ssr#get-started-fast-with-initialdata).
+
+#### Next.js App Router Example
+
+[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/jotaijs/jotai-tanstack-query/tree/main/examples/11_nextjs_app_router)
 
 ### Error handling
 
