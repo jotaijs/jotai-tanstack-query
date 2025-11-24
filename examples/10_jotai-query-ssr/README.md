@@ -97,8 +97,9 @@ const [{ data, isLoading, error}] = useAtom(userAtom)
 
 1. **Server**: Next.js server component prefetches data using TanStack Query
 2. **Server**: Data is dehydrated and passed to `HydrationBoundary`
-3. **Client**: QueryClient hydrates the prefetched data
-4. **Client**: Jotai atom (via `atomWithQuery`) reads from the hydrated TanStack Query cache
-5. **Result**: No loading state, data is immediately available on first render
+3. **Client**: `HydrationBoundary` hydrates the QueryClient with prefetched data
+4. **Client**: `useHydrateAtoms` syncs the QueryClient with jotai-tanstack-query's `queryClientAtom`
+5. **Client**: Jotai atom (via `atomWithQuery`) reads from the merged QueryClient cache
+6. **Result**: No loading state, data is immediately available on first render
 
 
