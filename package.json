@@ -1,5 +1,5 @@
 {
-  "name": "jotai-tanstack-query",
+  "name": "@brawcode/jotai-tanstack-query",
   "description": "👻🌺",
   "version": "0.11.0",
   "type": "module",
@@ -11,7 +11,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotaijs/jotai-tanstack-query.git"
+    "url": "https://github.com/Gibbo3771/jotai-tanstack-query.git"
   },
   "source": "./src/index.ts",
   "main": "./dist/index.js",
@@ -35,10 +35,12 @@
   "sideEffects": false,
   "files": [
     "src",
-    "dist"
+    "dist",
+    "CHANGELOG.md"
   ],
   "scripts": {
     "compile": "bunchee --sourcemap",
+    "prepublishOnly": "npm run test && npm run compile",
     "test": "run-s eslint tsc-test vitest",
     "eslint": "eslint --ext .js,.ts,.tsx .",
     "vitest": "vitest run",

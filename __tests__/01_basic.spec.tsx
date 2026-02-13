@@ -1,4 +1,5 @@
 import {
+  QueryClientAtomProvider,
   atomWithInfiniteQuery,
   atomWithMutation,
   atomWithMutationState,
@@ -17,5 +18,6 @@ describe('basic spec', () => {
     expect(atomWithSuspenseQuery).toBeDefined()
     expect(atomWithSuspenseInfiniteQuery).toBeDefined()
     expect(atomWithMutationState).toBeDefined()
+    expect(QueryClientAtomProvider).toBeDefined()
   })
 })

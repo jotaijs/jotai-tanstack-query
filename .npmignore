@@ -1,0 +1,22 @@
+# Development files
+__tests__/
+examples/
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
+
+# Configuration files
+.github/
+.gitignore
+.prettierrc
+eslint.config.js
+tsconfig.json
+vitest.config.ts
+pnpm-lock.yaml
+pnpm-workspace.yaml
+
+# Temporary files
+*~
+*.swp
+.DS_Store
