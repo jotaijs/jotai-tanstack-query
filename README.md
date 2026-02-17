@@ -696,6 +696,36 @@ const userAtom = atomWithQuery((get: Getter) => ({
 }))
 ```
 
+### Why “tracked properties” are not supported
+
+TanStack Query provides a feature called [tracked properties](https://tanstack.com/query/v5/docs/framework/react/guides/render-optimizations#tracked-properties), which only triggers a re-render when a property that was actually accessed changes.
+
+For example:
+
+```tsx
+const { data } = useQuery(...)
+```
+
+If only data is accessed, changes to isFetching or status will not cause a re-render.
+
+However, atomWithQuery intentionally does **not** implement this behavior.
+
+The atom approach is to create derived atoms rather than automatic tracking.
+
+```js
+const queryAtom = atomWithQuery(...)
+
+const dataAtom = atom((get) => get(queryAtom).data)
+
+const Component = () => {
+  const data = useAtomValue(dataAtom)
+  ...
+}
+```
+
+The component only subscribes to data, changes to other properties (e.g. isFetching) won’t trigger re-renders
+
+
 ## Migrate to v0.8.0
 
 ### Change in atom signature
