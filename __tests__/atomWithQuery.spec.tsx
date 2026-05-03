@@ -1,6 +1,6 @@
 import React, { StrictMode, Suspense, useState } from 'react'
 import { QueryClient } from '@tanstack/query-core'
-import { fireEvent, render } from '@testing-library/react'
+import { fireEvent, render, waitFor } from '@testing-library/react'
 import { Getter, atom, useAtom, useSetAtom } from 'jotai'
 import { unwrap } from 'jotai/utils'
 import { ErrorBoundary } from 'react-error-boundary'
@@ -527,6 +527,56 @@ it('query expected QueryCache test', async () => {
   resolve()
   await findByText('count: 0')
   expect(queryClient.getQueryCache().getAll().length).toBe(1)
+})
+
+it('reconnects to the live query after gc', async () => {
+  const queryClient = new QueryClient()
+  const valueAtom = atomWithQuery(
+    () => ({
+      gcTime: 0,
+      queryKey: ['reconnect-after-gc'],
+      queryFn: async () => 'initial',
+      staleTime: Infinity,
+    }),
+    () => queryClient
+  )
+  const Value = () => {
+    const [{ data }] = useAtom(valueAtom)
+
+    return <div>value: {data ?? 'pending'}</div>
+  }
+
+  const { findByText, rerender } = render(<Value />)
+
+  await findByText('value: initial')
+
+  rerender(<></>)
+
+  await waitFor(() => {
+    expect(
+      queryClient.getQueryCache().find({
+        exact: true,
+        queryKey: ['reconnect-after-gc'],
+      })
+    ).toBeUndefined()
+  })
+
+  queryClient.setQueryData(['reconnect-after-gc'], 'after gc')
+  rerender(<Value />)
+
+  await findByText('value: after gc')
+  expect(
+    queryClient
+      .getQueryCache()
+      .find({
+        exact: true,
+        queryKey: ['reconnect-after-gc'],
+      })
+      ?.getObserversCount()
+  ).toBe(1)
+
+  queryClient.setQueryData(['reconnect-after-gc'], 'second update after gc')
+  await findByText('value: second update after gc')
 })
 
 describe('error handling', () => {
