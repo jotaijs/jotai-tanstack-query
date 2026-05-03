@@ -91,6 +91,7 @@ export function baseAtomWithQuery<
   }
 
   const dataAtom = atom((get) => {
+    const client = get(clientAtom)
     const observer = get(observerAtom)
     const defaultedOptions = get(defaultedOptionsAtom)
     const result = observer.getOptimisticResult(defaultedOptions)
@@ -101,6 +102,17 @@ export function baseAtomWithQuery<
     }
 
     resultAtom.onMount = (set) => {
+      const currentQuery = observer.getCurrentQuery()
+      const cachedQuery = client.getQueryCache().find({
+        exact: true,
+        queryKey: currentQuery.queryKey,
+      })
+
+      if (cachedQuery !== currentQuery) {
+        observer.setOptions(defaultedOptions)
+        set(observer.getCurrentResult())
+      }
+
       const unsubscribe = observer.subscribe(notifyManager.batchCalls(set))
       return () => {
         if (observer.getCurrentResult().isError) {
