@@ -1,7 +1,7 @@
 import React, { StrictMode, Suspense, useState } from 'react'
 import { QueryClient } from '@tanstack/query-core'
 import { fireEvent, render } from '@testing-library/react'
-import { Getter, atom, useAtom, useSetAtom } from 'jotai'
+import { Getter, atom, createStore, useAtom, useSetAtom } from 'jotai'
 import { unwrap } from 'jotai/utils'
 import { ErrorBoundary } from 'react-error-boundary'
 import { vi } from 'vitest'
@@ -767,4 +767,134 @@ it(`ensure that setQueryData for an inactive query updates its atom state`, asyn
   fireEvent.click(await findByText('Set page 1'))
   await expect(() => findByText('loading')).rejects.toThrow()
   await findByText('Name: Alex Smith')
+})
+
+it('rebinds a cached observer when remounted after queryClient.clear()', async () => {
+  const queryClient = new QueryClient()
+  const queryKey = ['profile-after-remount']
+  queryClient.setQueryData(queryKey, 'A')
+
+  const profileAtom = atomWithQuery(
+    () => ({
+      queryKey,
+      queryFn: async () => 'B',
+      staleTime: Infinity,
+    }),
+    () => queryClient
+  )
+  const store = createStore()
+  const unsubscribe = store.sub(profileAtom, () => {})
+
+  expect(store.get(profileAtom).data).toBe('A')
+
+  queryClient.setQueryData(queryKey, 'A2')
+  unsubscribe()
+  queryClient.clear()
+  queryClient.setQueryData(queryKey, 'B')
+
+  const unsubscribeAgain = store.sub(profileAtom, () => {})
+
+  expect(store.get(profileAtom).data).toBe('B')
+  await new Promise((resolve) => globalThis.setTimeout(resolve, 0))
+  expect(store.get(profileAtom).data).toBe('B')
+
+  unsubscribeAgain()
+  queryClient.clear()
+})
+
+it('observes a replacement query created during the initial subscription', async () => {
+  const queryClient = new QueryClient()
+  const queryKey = ['profile-during-subscription']
+  queryClient.setQueryData(queryKey, 'A')
+  await queryClient.invalidateQueries({ queryKey })
+
+  let replaced = false
+  const queryFn = vi.fn(async () => {
+    if (!replaced) {
+      replaced = true
+      queryClient.clear()
+      queryClient.setQueryData(queryKey, 'B')
+      queryClient.setQueryData(queryKey, 'C')
+    }
+    return 'old query result'
+  })
+  const profileAtom = atomWithQuery(
+    () => ({ queryKey, queryFn, staleTime: Infinity }),
+    () => queryClient
+  )
+  const store = createStore()
+  const unsubscribe = store.sub(profileAtom, () => {})
+
+  await vi.waitFor(() => expect(store.get(profileAtom).data).toBe('C'))
+  expect(queryFn).toHaveBeenCalledTimes(1)
+
+  unsubscribe()
+  queryClient.clear()
+})
+
+it('reuses a replacement query fetch with the default staleTime', async () => {
+  const queryClient = new QueryClient()
+  const queryKey = ['profile-replacement-fetch']
+
+  const queryFn = vi.fn(async () => 'A')
+  const replacementQueryFn = vi.fn(async () => 'B')
+  const profileAtom = atomWithQuery(
+    () => ({ queryKey, queryFn }),
+    () => queryClient
+  )
+  const store = createStore()
+  const unsubscribe = store.sub(profileAtom, () => {})
+
+  await vi.waitFor(() => expect(store.get(profileAtom).data).toBe('A'))
+  queryFn.mockClear()
+
+  queryClient.clear()
+  expect(queryClient.getQueryCache().find({ queryKey })).toBeUndefined()
+
+  await queryClient.fetchQuery({ queryKey, queryFn: replacementQueryFn })
+  await vi.waitFor(() => expect(store.get(profileAtom).data).toBe('B'))
+  await new Promise((resolve) => globalThis.setTimeout(resolve, 0))
+
+  expect(store.get(profileAtom).data).toBe('B')
+  expect(replacementQueryFn).toHaveBeenCalledTimes(1)
+  expect(queryFn).not.toHaveBeenCalled()
+
+  unsubscribe()
+  queryClient.clear()
+})
+
+it('shares one QueryCache subscription between mounted query atoms', () => {
+  const queryClient = new QueryClient()
+  const subscribe = vi.spyOn(queryClient.getQueryCache(), 'subscribe')
+  const firstAtom = atomWithQuery(
+    () => ({
+      queryKey: ['first-shared-subscription'],
+      queryFn: async () => 'first',
+    }),
+    () => queryClient
+  )
+  const secondAtom = atomWithQuery(
+    () => ({
+      queryKey: ['second-shared-subscription'],
+      queryFn: async () => 'second',
+    }),
+    () => queryClient
+  )
+  const store = createStore()
+
+  const unsubscribeFirst = store.sub(firstAtom, () => {})
+  const unsubscribeSecond = store.sub(secondAtom, () => {})
+
+  expect(subscribe).toHaveBeenCalledTimes(1)
+
+  unsubscribeFirst()
+  unsubscribeSecond()
+
+  const unsubscribeAgain = store.sub(firstAtom, () => {})
+
+  expect(subscribe).toHaveBeenCalledTimes(2)
+
+  unsubscribeAgain()
+  queryClient.clear()
+  subscribe.mockRestore()
 })

@@ -1,4 +1,6 @@
 import {
+  type Query,
+  type QueryCache,
   QueryClient,
   type QueryKey,
   QueryObserver,
@@ -9,6 +11,73 @@ import { Getter, WritableAtom, atom } from 'jotai'
 import { queryClientAtom } from './_queryClientAtom'
 import { BaseAtomWithQueryOptions } from './types'
 import { ensureStaleTime, getHasError, shouldSuspend } from './utils'
+
+type QueryAddedListener = (query: Query) => void
+
+type QueryCacheSubscription = {
+  listenersByQueryHash: Map<string, Set<QueryAddedListener>>
+  unsubscribe: () => void
+}
+
+const queryCacheSubscriptions = new WeakMap<
+  QueryCache,
+  QueryCacheSubscription
+>()
+
+const subscribeToQueryAdded = (
+  queryCache: QueryCache,
+  queryHash: string,
+  listener: QueryAddedListener
+) => {
+  let subscription = queryCacheSubscriptions.get(queryCache)
+
+  if (!subscription) {
+    const listenersByQueryHash = new Map<
+      string,
+      Set<QueryAddedListener>
+    >()
+    const notify = (query: Query) => {
+      if (queryCache.get(query.queryHash) !== query) return
+      listenersByQueryHash
+        .get(query.queryHash)
+        ?.forEach((listener) => listener(query))
+    }
+
+    subscription = {
+      listenersByQueryHash,
+      unsubscribe: queryCache.subscribe((event) => {
+        if (event.type === 'added') {
+          void Promise.resolve().then(() => notify(event.query))
+        }
+      }),
+    }
+    queryCacheSubscriptions.set(queryCache, subscription)
+  }
+
+  let listeners = subscription.listenersByQueryHash.get(queryHash)
+  if (!listeners) {
+    listeners = new Set()
+    subscription.listenersByQueryHash.set(queryHash, listeners)
+  }
+  listeners.add(listener)
+
+  let isSubscribed = true
+  return () => {
+    if (!isSubscribed) return
+    isSubscribed = false
+    listeners.delete(listener)
+
+    if (!listeners.size) {
+      subscription.listenersByQueryHash.delete(queryHash)
+    }
+    if (!subscription.listenersByQueryHash.size) {
+      subscription.unsubscribe()
+      if (queryCacheSubscriptions.get(queryCache) === subscription) {
+        queryCacheSubscriptions.delete(queryCache)
+      }
+    }
+  }
+}
 
 export function baseAtomWithQuery<
   TQueryFnData,
@@ -91,6 +160,7 @@ export function baseAtomWithQuery<
   }
 
   const dataAtom = atom((get) => {
+    const client = get(clientAtom)
     const observer = get(observerAtom)
     const defaultedOptions = get(defaultedOptionsAtom)
     const result = observer.getOptimisticResult(defaultedOptions)
@@ -100,13 +170,40 @@ export function baseAtomWithQuery<
       resultAtom.debugPrivate = true
     }
 
+    let mountGeneration = 0
     resultAtom.onMount = (set) => {
-      const unsubscribe = observer.subscribe(notifyManager.batchCalls(set))
+      const generation = ++mountGeneration
+      observer.setOptions(defaultedOptions)
+      let isMounted = true
+      const queryCache = client.getQueryCache()
+      const unsubscribeCache = subscribeToQueryAdded(
+        queryCache,
+        observer.getCurrentQuery().queryHash,
+        (query) => {
+          if (
+            isMounted &&
+            queryCache.get(query.queryHash) === query &&
+            query.queryHash === observer.options.queryHash &&
+            query !== observer.getCurrentQuery()
+          ) {
+            observer.setOptions(observer.options)
+          }
+        }
+      )
+      const unsubscribeObserver = observer.subscribe(
+        notifyManager.batchCalls((result) => {
+          if (generation === mountGeneration) set(result)
+        })
+      )
+      set(observer.getCurrentResult())
+
       return () => {
+        isMounted = false
+        unsubscribeCache()
         if (observer.getCurrentResult().isError) {
           observer.getCurrentQuery().reset()
         }
-        unsubscribe()
+        unsubscribeObserver()
       }
     }
 
