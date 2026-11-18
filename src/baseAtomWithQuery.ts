@@ -137,8 +137,10 @@ export function baseAtomWithQuery<
       ) {
         throw result.error
       }
-
-      return result
+      // Handle result property usage tracking
+      return !defaultedOptions.notifyOnChangeProps
+        ? observer.trackResult(result)
+        : result
     },
     (_get, set) => {
       set(refreshAtom, (c) => c + 1)
